@@ -3468,7 +3468,7 @@ function initApp() {
         albumState.imagePipeline.queueThumbnail(photo, (p, thumbSrc) => {
           const thumbImg = document.querySelector(`.photo-thumb[data-photo-id="${p.id}"] img`);
           if (thumbImg && thumbSrc) thumbImg.src = thumbSrc;
-        });
+        }, canvasRenderer._getImage(photo.src));
       }
 
       const img = new Image();
@@ -5230,6 +5230,7 @@ function initApp() {
                   p.height = match.height;
                   p.aspect = match.aspect || Number((match.width / match.height).toFixed(3));
                 }
+                albumState.imagePipeline?.cache?.delete(p.id);
                 matchedCount++;
               }
             });
@@ -5252,10 +5253,6 @@ function initApp() {
               } catch (se) {}
             }
 
-            canvasRenderer.imageCache?.clear();
-            if (albumState.imagePipeline) {
-              albumState.project.photos.forEach(p => albumState.imagePipeline.cache?.delete(p.id));
-            }
             if (canvasRenderer.preloadAllSpreadImages) {
               canvasRenderer.preloadAllSpreadImages();
             }
@@ -5465,6 +5462,7 @@ function initApp() {
                 photo.height = match.height;
                 photo.aspect = Number((match.width / match.height).toFixed(3)) || photo.aspect;
               }
+              albumState.imagePipeline?.cache?.delete(photo.id);
               relinkedCount++;
 
               if (!discoveredFolder) {
@@ -5522,10 +5520,6 @@ function initApp() {
           }
 
           if (relinkedCount > 0) {
-            canvasRenderer.imageCache?.clear();
-            if (albumState.imagePipeline) {
-              albumState.project.photos.forEach(p => albumState.imagePipeline.cache?.delete(p.id));
-            }
             if (canvasRenderer.preloadAllSpreadImages) {
               canvasRenderer.preloadAllSpreadImages();
             }
@@ -5738,20 +5732,18 @@ function initApp() {
 
           // Clear any old thumbnail cache so full-resolution image displays immediately
           if (albumState.imagePipeline) {
-            albumState.imagePipeline.cache?.delete(photo.id);
-          }
-
-          // Probe and update natural dimensions directly from the real high-res file
-          const probe = new Image();
-          probe.onload = () => {
-            if (probe.naturalWidth && probe.naturalHeight) {
-              photo.width = probe.naturalWidth;
-              photo.height = probe.naturalHeight;
-              photo.aspect = Number((probe.naturalWidth / probe.naturalHeight).toFixed(3));
+            albumState.imagePipeline.cache?.set(photo.id, {
+              data: photo,
+              displayImg: null,
+              originalImg: null,
+              thumbReady: false
+            });
+            albumState.imagePipeline.queueThumbnail(photo, (updatedPhoto, thumbSrc) => {
+              const thumbImg = document.querySelector(`.photo-thumb[data-photo-id="${updatedPhoto.id}"] img`);
+              if (thumbImg && thumbSrc) thumbImg.src = thumbSrc;
               canvasRenderer.requestRender();
-            }
-          };
-          probe.src = newUrl;
+            }, canvasRenderer._getImage(newUrl));
+          }
 
           relinkedCount++;
         }
@@ -5825,12 +5817,8 @@ function initApp() {
           }).catch(() => {});
         }
 
-        canvasRenderer.imageCache?.clear();
-        if (albumState.imagePipeline) {
-          albumState.project.photos.forEach(p => {
-            albumState.imagePipeline.cache?.delete(p.id);
-          });
-        }
+        // Keep existing decoded photos cached; relinked browser files use fresh
+        // Blob URLs and receive their own decoded original plus generated thumb.
         if (canvasRenderer.preloadAllSpreadImages) {
           canvasRenderer.preloadAllSpreadImages();
         }

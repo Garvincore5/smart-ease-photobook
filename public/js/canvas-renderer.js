@@ -17,6 +17,7 @@ class CanvasRenderer {
     this.albumState = albumState;
 
     this.imageCache = new Map(); // src -> Image object
+    this.imageLoadPromises = new Map(); // src -> shared in-flight Image load
     this.cachedRectangles = [];  // pixel rects for hit testing
 
     // Interactive state
@@ -2204,39 +2205,34 @@ class CanvasRenderer {
 
   _getHighResSrc(photo) {
     if (!photo) return null;
-    // 0. If photo has active blob: or data: URL from browser folder picker, return directly
-    if (typeof photo.src === 'string' && (photo.src.startsWith('blob:') || photo.src.startsWith('data:'))) {
-      return photo.src;
-    }
-    if (typeof photo.originalSrc === 'string' && (photo.originalSrc.startsWith('blob:') || photo.originalSrc.startsWith('data:'))) {
-      return photo.originalSrc;
-    }
-    // 1. If photo has a verified local file path on disk, construct endpoint with global API connector
+    const addPhotoVersion = (src) => {
+      if (!src || !src.includes('/api/local_image')) return src;
+      const version = photo.lastModified || photo.fileSize || '';
+      if (!version || /[?&]v=/.test(src)) return src;
+      return `${src}${src.includes('?') ? '&' : '?'}v=${encodeURIComponent(version)}`;
+    };
+    // Prefer the verified original path, even if a saved preview URL is still in src.
     if (photo.filePath && typeof photo.filePath === 'string' && photo.filePath.length > 2) {
       const ep = `/api/local_image?path=${encodeURIComponent(photo.filePath)}`;
-      return (typeof window.getApiUrl === 'function') ? window.getApiUrl(ep) : ep;
+      const url = (typeof window.getApiUrl === 'function') ? window.getApiUrl(ep) : ep;
+      return addPhotoVersion(url);
     }
-    // 2. If photo.src is a local_image URL, ensure it does NOT have thumb= or w= query params
-    if (typeof photo.src === 'string' && photo.src) {
-      if (photo.src.includes('/api/local_image')) {
-        const clean = photo.src.replace(/[?&]thumb=[^&]*/g, '').replace(/[?&]w=\d+/g, '').replace(/\?&/, '?').replace(/&$/, '').replace(/\?$/, '');
-        return (typeof window.getApiUrl === 'function') ? window.getApiUrl(clean) : clean;
+    // A thumbnail URL must never be returned as the print source. In particular,
+    // strip the desktop API's thumbnail parameters before loading the original.
+    const originalIsThumb = Boolean(photo.originalSrc && photo.thumbSrc && photo.originalSrc === photo.thumbSrc);
+    const candidates = originalIsThumb ? [photo.src, photo.originalSrc] : [photo.originalSrc, photo.src];
+    for (const candidate of candidates) {
+      if (typeof candidate !== 'string' || !candidate) continue;
+      if (candidate.includes('/api/local_image')) {
+        const clean = candidate.replace(/[?&]thumb=[^&]*/g, '').replace(/[?&]w=\d+/g, '').replace(/\?&/, '?').replace(/&$/, '').replace(/\?$/, '');
+        const url = (typeof window.getApiUrl === 'function') ? window.getApiUrl(clean) : clean;
+        return addPhotoVersion(url);
       }
-      if (!photo.src.includes('thumb=')) {
-        return photo.src;
-      }
-    }
-    // 3. Fallback to originalSrc if present and clean
-    if (typeof photo.originalSrc === 'string' && photo.originalSrc) {
-      if (photo.originalSrc.includes('/api/local_image')) {
-        const clean = photo.originalSrc.replace(/[?&]thumb=[^&]*/g, '').replace(/[?&]w=\d+/g, '').replace(/\?&/, '?').replace(/&$/, '').replace(/\?$/, '');
-        return (typeof window.getApiUrl === 'function') ? window.getApiUrl(clean) : clean;
-      }
-      if (!photo.originalSrc.includes('thumb=')) {
-        return photo.originalSrc;
+      if (candidate.startsWith('blob:') || candidate.startsWith('data:') || !/[?&](thumb|w)=/i.test(candidate)) {
+        return addPhotoVersion(candidate);
       }
     }
-    return photo.src || null;
+    return null;
   }
 
   _getThumbSrc(photo) {
@@ -2250,14 +2246,20 @@ class CanvasRenderer {
     }
     if (photo.filePath && typeof photo.filePath === 'string' && photo.filePath.length > 2) {
       const ep = `/api/local_image?path=${encodeURIComponent(photo.filePath)}&thumb=1`;
-      return (typeof window.getApiUrl === 'function') ? window.getApiUrl(ep) : ep;
+      const url = (typeof window.getApiUrl === 'function') ? window.getApiUrl(ep) : ep;
+      const version = photo.lastModified || photo.fileSize || '';
+      return version ? `${url}&v=${encodeURIComponent(version)}` : url;
     }
     if (typeof photo.src === 'string' && photo.src.includes('/api/local_image')) {
       const ep = photo.src.includes('thumb=') ? photo.src : (photo.src + '&thumb=1');
-      return (typeof window.getApiUrl === 'function') ? window.getApiUrl(ep) : ep;
+      const url = (typeof window.getApiUrl === 'function') ? window.getApiUrl(ep) : ep;
+      const version = photo.lastModified || photo.fileSize || '';
+      return version && !/[?&]v=/.test(url) ? `${url}&v=${encodeURIComponent(version)}` : url;
     }
     if (photo.thumbSrc) {
-      return (typeof window.getApiUrl === 'function') ? window.getApiUrl(photo.thumbSrc) : photo.thumbSrc;
+      const url = (typeof window.getApiUrl === 'function') ? window.getApiUrl(photo.thumbSrc) : photo.thumbSrc;
+      const version = photo.lastModified || photo.fileSize || '';
+      return version && url.includes('/api/local_image') && !/[?&]v=/.test(url) ? `${url}${url.includes('?') ? '&' : '?'}v=${encodeURIComponent(version)}` : url;
     }
     return null;
   }
@@ -2311,49 +2313,16 @@ class CanvasRenderer {
 
   preloadAllSpreadImages() {
     if (!this.albumState?.project?.spreads) return;
-    const spreads = this.albumState.project.spreads;
-    const activeSpreadIdx = this.albumState.activeSpreadIndex || 0;
-
-    // 1. First priority: Preload the active spread's full-resolution images
-    const activeSpread = spreads[activeSpreadIdx];
-    if (activeSpread?.slots) {
-      for (const slot of activeSpread.slots) {
-        if (slot.photoId) {
-          const photo = this.albumState.getPhotoById(slot.photoId);
-          if (photo) {
-            const highRes = this._getHighResSrc(photo);
-            if (highRes) this._getImage(highRes);
-            const thumb = this._getThumbSrc(photo);
-            if (thumb && thumb !== highRes) this._getImage(thumb);
-          }
-        }
-      }
-    }
-
-    // 2. Preload remaining spreads
-    for (let i = 0; i < spreads.length; i++) {
-      if (i === activeSpreadIdx) continue;
-      const sp = spreads[i];
-      if (!sp?.slots) continue;
-      for (const slot of sp.slots) {
-        if (slot.photoId) {
-          const photo = this.albumState.getPhotoById(slot.photoId);
-          if (photo) {
-            const highRes = this._getHighResSrc(photo);
-            if (highRes) this._getImage(highRes);
-            const thumb = this._getThumbSrc(photo);
-            if (thumb && thumb !== highRes) this._getImage(thumb);
-          }
-        }
-      }
-    }
+    // Rendering requests full-resolution sources for the active spread. Keep
+    // only nearby-spread thumbnails warm instead of decoding every photo at once.
+    this.preloadAdjacentSpreads();
   }
 
   preloadAdjacentSpreads() {
     if (!this.albumState?.project?.spreads) return;
     const spreads = this.albumState.project.spreads;
     const curr = this.albumState.activeSpreadIndex || 0;
-    const targets = [curr - 1, curr + 1, curr - 2, curr + 2];
+    const targets = [curr - 1, curr + 1];
     for (const t of targets) {
       if (t >= 0 && t < spreads.length) {
         const sp = spreads[t];
@@ -2362,10 +2331,8 @@ class CanvasRenderer {
             if (s.photoId) {
               const p = this.albumState.getPhotoById(s.photoId);
               if (p) {
-                const highRes = this._getHighResSrc(p);
-                if (highRes) this._getImage(highRes);
                 const thumb = this._getThumbSrc(p);
-                if (thumb && thumb !== highRes) this._getImage(thumb);
+                if (thumb) this._getImage(thumb);
               }
             }
           }
@@ -4104,23 +4071,13 @@ class CanvasRenderer {
       const photo = this.albumState.getPhotoById(slot.photoId);
       if (!photo) continue;
 
-      let img = null;
-      const isBlob = (s) => typeof s === 'string' && s.startsWith('blob:');
-      const isDataOrHttp = (s) => typeof s === 'string' && (s.startsWith('data:') || s.startsWith('http:') || s.startsWith('https:'));
-
-      // High-Resolution Export Priority:
-      // ALWAYS prioritize full-resolution source so exports render in true print-ready 300 DPI!
-      const candidates = [];
-      const highRes = this._getHighResSrc(photo);
-      if (highRes) candidates.push(highRes);
-      if (photo.src && !candidates.includes(photo.src)) candidates.push(photo.src);
-      if (photo.originalSrc && !candidates.includes(photo.originalSrc)) candidates.push(photo.originalSrc);
-      const thumb = this._getThumbSrc(photo);
-      if (thumb && !candidates.includes(thumb)) candidates.push(thumb);
-
-      for (const src of candidates) {
-        img = await this._loadHighResImage(src);
-        if (img && img.naturalWidth > 0) break;
+      // Print output must use the original source. Never silently substitute a
+      // tray thumbnail: 300 DPI canvas dimensions cannot restore lost detail.
+      const highRes = photo.needsRelink ? null : this._getHighResSrc(photo);
+      const img = highRes ? await this._loadHighResImage(highRes) : null;
+      if (!img || !img.naturalWidth) {
+        const name = photo.name || photo.fileName || photo.id;
+        throw new Error(`Could not load the original-resolution photo "${name}". Relink the original photo before exporting.`);
       }
       if (img) {
         ctx.save();
@@ -4159,24 +4116,25 @@ class CanvasRenderer {
 
   _loadHighResImage(src) {
     if (!src) return Promise.resolve(null);
-    if (this.imageCache && this.imageCache.has(src)) {
-      const cached = this.imageCache.get(src);
-      if (cached && cached.complete && cached.naturalWidth > 0) {
-        return Promise.resolve(cached);
-      }
+    let targetSrc = src;
+    if (typeof targetSrc === 'string' && targetSrc.startsWith('/api/') && typeof window.getApiUrl === 'function') {
+      targetSrc = window.getApiUrl(targetSrc);
     }
-    return new Promise((resolve) => {
-      const img = new Image();
-      if (src.startsWith('http')) {
-        img.crossOrigin = 'anonymous';
+    const cached = this.imageCache?.get(targetSrc) || this.imageCache?.get(src);
+    if (cached?.complete) return Promise.resolve(cached.naturalWidth > 0 && !cached._hasError ? cached : null);
+    if (this.imageLoadPromises.has(targetSrc)) return this.imageLoadPromises.get(targetSrc);
+
+    const img = cached || this._getImage(targetSrc);
+    const promise = new Promise((resolve) => {
+      if (img.complete) {
+        resolve(img.naturalWidth > 0 && !img._hasError ? img : null);
+        return;
       }
-      img.onload = () => {
-        if (this.imageCache) this.imageCache.set(src, img);
-        resolve(img);
-      };
-      img.onerror = () => resolve(null);
-      img.src = src;
-    });
+      img.addEventListener('load', () => resolve(img.naturalWidth > 0 ? img : null), { once: true });
+      img.addEventListener('error', () => resolve(null), { once: true });
+    }).finally(() => this.imageLoadPromises.delete(targetSrc));
+    this.imageLoadPromises.set(targetSrc, promise);
+    return promise;
   }
 }
 

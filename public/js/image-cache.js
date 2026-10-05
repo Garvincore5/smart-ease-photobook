@@ -190,8 +190,8 @@ class FastImagePipeline {
   /**
    * Queue background thumbnail generation to avoid blocking UI on massive 200+ photo imports
    */
-  queueThumbnail(photo, onGenerated) {
-    this.thumbnailQueue.push({ photo, onGenerated });
+  queueThumbnail(photo, onGenerated, sourceImage = null) {
+    this.thumbnailQueue.push({ photo, onGenerated, sourceImage });
     if (!this.isProcessingQueue) {
       this._processNextInQueue();
     }
@@ -206,19 +206,37 @@ class FastImagePipeline {
     const item = this.thumbnailQueue.shift();
 
     const doWork = () => {
-      const img = new Image();
-      img.onload = () => {
+      const img = item.sourceImage || new Image();
+      const onLoaded = () => {
+        if (img.naturalWidth && img.naturalHeight) {
+          item.photo.width = img.naturalWidth;
+          item.photo.height = img.naturalHeight;
+          item.photo.aspect = Number((img.naturalWidth / img.naturalHeight).toFixed(3)) || item.photo.aspect;
+        }
+        const cached = this.cache.get(item.photo.id) || { data: item.photo, thumbReady: false };
+        cached.data = item.photo;
+        cached.displayImg = img;
+        cached.originalImg = img;
+        this.cache.set(item.photo.id, cached);
         try {
           const thumb = this._createFastThumbnail(img, 200);
           item.photo.thumbSrc = thumb;
+          cached.thumbReady = true;
           if (item.onGenerated) item.onGenerated(item.photo, thumb);
         } catch (e) {}
         setTimeout(() => this._processNextInQueue(), 6);
       };
-      img.onerror = () => {
+      const onError = () => {
         setTimeout(() => this._processNextInQueue(), 6);
       };
-      img.src = item.photo.src;
+      if (img.complete) {
+        if (img.naturalWidth > 0) onLoaded();
+        else onError();
+        return;
+      }
+      img.addEventListener('load', onLoaded, { once: true });
+      img.addEventListener('error', onError, { once: true });
+      if (!item.sourceImage) img.src = item.photo.src;
     };
 
     if (window.requestIdleCallback) {
