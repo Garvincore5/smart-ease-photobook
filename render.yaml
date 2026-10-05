@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: smart-ease-backend
+    runtime: python
+    rootDir: render-backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATA_DIR
+        value: /tmp/smart-ease-data
+      - key: WEB_ORIGINS
+        value: https://smart-ease.web.app,https://smart-ease.firebaseapp.com

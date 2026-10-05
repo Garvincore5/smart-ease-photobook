@@ -1,0 +1,2795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Ease - Smart Photobook Designer</title>
+  <link rel="icon" type="image/x-icon" href="logo/app_icon.ico">
+  <link rel="shortcut icon" href="logo/app_icon.ico">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ==================== Application Welcome Splash Screen Overlay ==================== -->
+  <script>
+    function dismissSplashScreen() {
+      var overlay = document.getElementById('appSplashScreen');
+      if (!overlay) return;
+      overlay.classList.add('fade-out');
+      overlay.style.opacity = '0';
+      overlay.style.pointerEvents = 'none';
+      setTimeout(function() {
+        overlay.style.display = 'none';
+        if (window.dispatchEvent) {
+          window.dispatchEvent(new Event('resize'));
+        }
+      }, 400);
+    }
+    window.addEventListener('keydown', function(e) {
+      var overlay = document.getElementById('appSplashScreen');
+      if (overlay && overlay.style.display !== 'none' && !overlay.classList.contains('fade-out')) {
+        dismissSplashScreen();
+      }
+    });
+  </script>
+
+  <div class="splash-screen-overlay" id="appSplashScreen" onclick="dismissSplashScreen()" title="Click anywhere to enter Smart Ease">
+    <div class="splash-stage-container">
+      <img src="logo/splash screen image.jpg" alt="Welcome Splash Screen" class="splash-banner-img">
+      <div class="splash-image-gradient"></div>
+      <div class="splash-enter-hint">
+        <span>Click anywhere to start designing</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </div>
+    </div>
+    <button class="splash-close-btn" onclick="event.stopPropagation(); dismissSplashScreen();" title="Enter Studio">
+      ✕
+    </button>
+  </div>
+
+  <!-- ==================== Top Application Header ==================== -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="logo/Smart Ease Logo.jpg" alt="Smart Ease Logo" class="brand-logo-img" title="Smart Ease">
+      <div>
+        <div class="brand-title">Smart Ease</div>
+        <div class="brand-subtitle">Smart Photobook Designer</div>
+      </div>
+    </div>
+
+    <div class="header-project-context" title="Current project">
+      <svg class="header-project-icon" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+        <path d="M14 3v5h5M9 13h6M9 17h6"></path>
+      </svg>
+      <div class="header-project-details">
+        <span class="header-book-name" id="headerBookName">No Project Open</span>
+        <span class="header-project-status" id="headerProjectStatus"><i></i>No Project Open</span>
+      </div>
+      <svg class="header-project-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+
+    <!-- Center Layout Tools -->
+    <div class="header-center-tools">
+      <div class="header-btn-group">
+        <button class="btn-icon" id="btnPrevLayout" title="Previous Layout (Shift + Space)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <button class="btn-icon" id="btnNextLayout" title="Next Layout (Space)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <button class="btn-pill primary" id="btnNewProject" title="Create a new photobook project from scratch">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>New Project</span>
+      </button>
+
+      <button class="btn-pill" id="btnOpenProjectHeader" title="Open an existing project (.json)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
+        </svg>
+        Open Project
+      </button>
+
+      <button class="btn-pill" id="btnReloadProject" title="Reload / Reconnect project photos and refresh workspace">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        Reload Project
+      </button>
+
+    </div>
+
+    <!-- Right Actions -->
+    <div class="header-right-actions">
+      <div class="header-btn-group">
+        <button class="btn-icon" id="btnUndo" title="Undo (Ctrl + Z)" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path>
+          </svg>
+        </button>
+        <button class="btn-icon" id="btnRedo" title="Redo (Ctrl + Y)" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 7v6h-6"></path>
+            <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"></path>
+          </svg>
+        </button>
+      </div>
+
+      <button class="btn-pill btn-activate" id="btnActivate" title="Activate Smart Ease License / Full Pro Version">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+        Activate
+      </button>
+      <input type="file" id="fileProjectInput" accept=".json" style="display: none;">
+
+      <!-- User Profile Menu Button & Dropdown -->
+      <div class="profile-menu-container" id="profileMenuContainer">
+        <button class="profile-avatar-btn" id="btnProfileMenu" title="User Account, Settings & Support">
+          <div class="profile-avatar-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span class="profile-name-label">Studio Pro</span>
+          <svg class="profile-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <div class="profile-dropdown-card" id="profileDropdownCard">
+          <div class="profile-user-header">
+            <div class="profile-user-avatar-badge">SP</div>
+            <div class="profile-user-details">
+              <div class="profile-user-name" id="profileUserDisplay">Studio Designer</div>
+              <div class="profile-user-email" id="profileEmailDisplay">studio.pro@smartease.app</div>
+            </div>
+            <span class="profile-plan-pill">PRO</span>
+          </div>
+
+          <div class="profile-menu-divider"></div>
+
+          <button class="profile-menu-item" id="btnProfileSettings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Settings</span>
+          </button>
+
+          <button class="profile-menu-item" id="btnProfileGmail">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <span>Gmail / Email Support</span>
+          </button>
+
+          <button class="profile-menu-item" id="btnProfileSubscription">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <span>Subscription</span>
+            <span class="profile-badge-active">Lifetime Pro</span>
+          </button>
+
+          <div class="profile-menu-divider"></div>
+
+          <button class="profile-menu-item" id="btnProfileLogin">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            <span>Login / Switch Account</span>
+          </button>
+
+          <button class="profile-menu-item logout" id="btnProfileLogout">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Logout</span>
+          </button>
+
+          <button class="profile-menu-item text-danger" id="btnProfileExitApp">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg>
+            <span>Exit Studio (Close App)</span>
+          </button>
+
+          <div class="profile-menu-divider"></div>
+
+          <button class="profile-menu-item" id="btnProfileAboutUs">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>About Us</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== Main Workspace Area ==================== -->
+  <main class="main-workspace">
+    <div class="canvas-stage" id="canvasStage">
+
+      <!-- ==================== Unified Floating Top Bar Above Spread ==================== -->
+      <div class="spread-top-dock" id="spreadTopDock">
+
+        <!-- 0A. Cursor / Select Pointer Tool -->
+        <div class="dock-pill-container" id="dockSelectToolContainer">
+          <button type="button" class="dock-pill-btn active" id="btnToolSelect" title="Select & Move Pointer Tool (Hotkey: V)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
+              <path d="M13 13l6 6"></path>
+            </svg>
+            <span>Cursor</span>
+          </button>
+        </div>
+
+        <!-- 0B. Hand / Pan Canvas Tool -->
+        <div class="dock-pill-container" id="dockHandToolContainer">
+          <button type="button" class="dock-pill-btn dock-btn-dark" id="btnToolHand" title="Mouse Hand / Pan Canvas Tool (Hotkey: H or Space+Drag)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+              <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+            </svg>
+            <span>Hand</span>
+          </button>
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <!-- 1. Controls & Album Format Floating Button -->
+        <div class="dock-pill-container" id="dockControlsContainer">
+          <button type="button" class="dock-pill-btn" id="btnDockControls" title="Controls, Album Format, Spacing & Export">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+              <circle cx="8" cy="6" r="2.5" fill="currentColor"></circle>
+              <circle cx="16" cy="12" r="2.5" fill="currentColor"></circle>
+              <circle cx="10" cy="18" r="2.5" fill="currentColor"></circle>
+            </svg>
+            <span>Controls & Format</span>
+          </button>
+        </div>
+
+        <!-- 2. Spread Layout Floating Button -->
+        <div class="dock-pill-container" id="dockSpreadLayoutContainer">
+          <button type="button" class="dock-pill-btn" id="btnDockSpreadLayout" title="Available Spreads Side Panel (384 Options)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Spread Layout</span>
+          </button>
+        </div>
+
+        <!-- 3. Design Layout Floating Button -->
+        <div class="dock-pill-container" id="dockDesignLayoutContainer">
+          <button type="button" class="dock-pill-btn" id="btnDockDesignLayout" title="Design Layout Actions: Prev, Next, Vary, Mirror">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span>Design Layout</span>
+          </button>
+        </div>
+
+        <!-- 4. Draw Rectangle / Add Photo Frame Floating Button with 41 Shapes Library & Combiner -->
+        <div class="dock-pill-container" id="dockDrawFrameContainer">
+          <button type="button" class="dock-pill-btn" id="btnDrawFrame" title="Draw Photo Frame: 41 Shapes & Combiner (Hotkey: D)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"></rect>
+              <rect x="8" y="8" width="8" height="8" rx="1" fill="rgba(255,255,255,0.2)"></rect>
+            </svg>
+            <span id="labelDrawFrameBtn">Draw Frame</span>
+            <span class="dock-active-shape-indicator" id="dockActiveShapeIndicator" title="Active Shape" style="display: none;">▭</span>
+          </button>
+        </div>
+
+        <!-- 5. Add Text Layer Floating Button -->
+        <div class="dock-pill-container" id="dockAddTextContainer">
+          <button type="button" class="dock-pill-btn" id="btnAddTextCanvas" title="Add Text / Typography Side Panel (Hotkey: T)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4 7 4 4 20 4 20 7"></polyline>
+              <line x1="9" y1="20" x2="15" y2="20"></line>
+              <line x1="12" y1="4" x2="12" y2="20"></line>
+            </svg>
+            <span>Add Text</span>
+          </button>
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <!-- 6. Vary Rectangles / Layout Variations Button -->
+        <div class="dock-pill-container" id="dockVaryContainer">
+          <button type="button" class="dock-pill-btn dock-btn-dark" id="btnDockVary" title="Layout Variations & Vary (Hotkey: R)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span>Vary</span>
+          </button>
+        </div>
+
+        <!-- 7. Rulers & Guides Button -->
+        <div class="dock-pill-container" id="dockRulersContainer">
+          <button type="button" class="dock-pill-btn dock-btn-dark active" id="btnDockRulers" title="Toggle Print Safe Lines & Guidelines">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+              <line x1="6" y1="6" x2="6" y2="10"></line>
+              <line x1="10" y1="6" x2="10" y2="13"></line>
+              <line x1="14" y1="6" x2="14" y2="10"></line>
+              <line x1="18" y1="6" x2="18" y2="13"></line>
+            </svg>
+            <span>Rulers</span>
+          </button>
+        </div>
+
+        <!-- 8. Undo & Redo History Buttons -->
+        <div class="dock-pill-container" id="dockUndoContainer" style="display: inline-flex; align-items: center; gap: 2px;">
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnDockUndo" title="Undo Last Action (Ctrl + Z)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7v6h6"></path>
+              <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+            </svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnDockRedo" data-alias="btnRedo" title="Redo Last Action (Ctrl + Y)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 7v6h-6"></path>
+              <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <!-- Alignment Controls -->
+        <div class="ps-opt-section" id="optAlignGroup" style="display: inline-flex; align-items: center; gap: 2px;">
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnAlignLeft" title="Align Left Edges">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="2" x2="4" y2="22"></line><rect x="8" y="5" width="12" height="5" rx="1"></rect><rect x="8" y="14" width="8" height="5" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnAlignCenterH" title="Align Horizontal Centers">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><rect x="4" y="5" width="16" height="5" rx="1"></rect><rect x="6" y="14" width="12" height="5" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnAlignRight" title="Align Right Edges">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="20" y1="2" x2="20" y2="22"></line><rect x="4" y="5" width="12" height="5" rx="1"></rect><rect x="8" y="14" width="8" height="5" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnAlignTop" title="Align Top Edges">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="4" x2="22" y2="4"></line><rect x="5" y="8" width="5" height="12" rx="1"></rect><rect x="14" y="8" width="5" height="8" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnAlignMiddleV" title="Align Vertical Centers">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="12" x2="22" y2="12"></line><rect x="5" y="4" width="5" height="16" rx="1"></rect><rect x="14" y="6" width="5" height="12" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnAlignBottom" title="Align Bottom Edges">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="20" x2="22" y2="20"></line><rect x="5" y="4" width="5" height="12" rx="1"></rect><rect x="14" y="8" width="5" height="8" rx="1"></rect></svg>
+          </button>
+          <span style="color: rgba(255,255,255,0.15); margin: 0 1px;">|</span>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnDockDistributeH" title="Distribute Horizontally (Equal Spacing)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="2" x2="4" y2="22"></line><line x1="20" y1="2" x2="20" y2="22"></line><rect x="8" y="7" width="8" height="10" rx="1"></rect></svg>
+          </button>
+          <button type="button" class="dock-icon-btn ps-opt-icon-btn" id="btnDockDistributeV" title="Distribute Vertically (Equal Spacing)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" y1="4" x2="22" y2="4"></line><line x1="2" y1="20" x2="22" y2="20"></line><rect x="7" y="8" width="10" height="8" rx="1"></rect></svg>
+          </button>
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <!-- Live Transform Readouts -->
+        <div class="ps-opt-section" id="optTransformGroup" style="display: inline-flex; align-items: center; gap: 7px;">
+          <div class="ps-opt-readout"><span>X:</span> <strong id="lblOptX">0 px</strong></div>
+          <div class="ps-opt-readout"><span>Y:</span> <strong id="lblOptY">0 px</strong></div>
+          <div class="ps-opt-readout"><span>W:</span> <strong id="lblOptW">2400 px</strong></div>
+          <div class="ps-opt-readout"><span>H:</span> <strong id="lblOptH">1200 px</strong></div>
+          <div class="ps-opt-readout"><span>⟳:</span> <strong id="lblOptRot">0°</strong></div>
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <!-- Foreground / Background Color Swatches -->
+        <div class="ps-swatches-wrap" id="topbarSwatchesWrap" title="Foreground & Background Colors">
+          <div class="ps-swatch ps-fg-swatch" id="swatchForeground" title="Foreground / Fill Color" style="background-color: #0284c7;">
+            <input type="color" id="inputFgColor" value="#0284c7">
+          </div>
+          <div class="ps-swatch ps-bg-swatch" id="swatchBackground" title="Background / Border Color" style="background-color: #1a1a1a;">
+            <input type="color" id="inputBgColor" value="#1a1a1a">
+          </div>
+          <button type="button" class="ps-swatch-swap-btn" id="btnSwapColors" title="Switch Colors (X)">⇄</button>
+        </div>
+
+        <div class="topbar-divider"></div>
+
+        <!-- 9. Canvas Zoom Level Button & Popdown -->
+        <div class="dock-pill-container" id="dockZoomContainer">
+          <button type="button" class="dock-pill-btn dock-btn-dark" id="btnDockZoom" title="Canvas Zoom Level & Presets">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span id="topbarZoomVal">100%</span>
+            <svg class="dock-pill-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="dock-popover-panel zoom-popover" id="dockZoomPanel">
+            <button type="button" class="hud-action-btn" data-topbar-zoom="fit">
+              <span>🔲</span> Fit to Window
+            </button>
+            <button type="button" class="hud-action-btn" data-topbar-zoom="0.5">50%</button>
+            <button type="button" class="hud-action-btn" data-topbar-zoom="0.75">75%</button>
+            <button type="button" class="hud-action-btn" data-topbar-zoom="1.0">100% (Actual Size)</button>
+            <button type="button" class="hud-action-btn" data-topbar-zoom="1.25">125%</button>
+            <button type="button" class="hud-action-btn" data-topbar-zoom="1.5">150%</button>
+            <button type="button" class="hud-action-btn" data-topbar-zoom="2.0">200%</button>
+          </div>
+        </div>
+
+        <!-- 10. Application Preferences / Settings Gear Button -->
+        <div class="dock-pill-container" id="dockSettingsContainer">
+          <button type="button" class="dock-icon-btn" id="btnDockSettings" title="Studio Settings & Preferences">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Draw Frame Active Top Banner -->
+      <div class="canvas-draw-banner" id="canvasDrawBanner" style="display: none;">
+        <div class="draw-banner-content" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span class="draw-banner-icon">✏️</span>
+          <span class="draw-banner-text"><strong>Draw Frame:</strong> <span id="bannerActiveShapeName" style="color: #38bdf8; font-weight: 700;">Rectangle</span> &mdash; Click &amp; drag on canvas:</span>
+          <div class="draw-shape-buttons" id="mainCanvasDrawShapeButtons" style="display: inline-flex; gap: 5px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-pill-xs active" data-shape="rectangle" id="btnMainDrawRect" style="background: #0284c7; color: #ffffff; padding: 2px 8px; font-size: 11px; border-radius: 12px; border: 1px solid #38bdf8; cursor: pointer;">▭ Rect</button>
+            <button type="button" class="btn-pill-xs" data-shape="circle" id="btnMainDrawCircle" style="background: rgba(255,255,255,0.08); color: #cbd5e1; padding: 2px 8px; font-size: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">◯ Circle</button>
+            <button type="button" class="btn-pill-xs" data-shape="rounded-rectangle" id="btnMainDrawRounded" style="background: rgba(255,255,255,0.08); color: #cbd5e1; padding: 2px 8px; font-size: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">▢ Rounded</button>
+            <button type="button" class="btn-pill-xs" data-shape="star" id="btnMainDrawStar" style="background: rgba(255,255,255,0.08); color: #cbd5e1; padding: 2px 8px; font-size: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">★ Star</button>
+            <button type="button" class="btn-pill-xs" data-shape="heart" id="btnMainDrawHeart" style="background: rgba(255,255,255,0.08); color: #cbd5e1; padding: 2px 8px; font-size: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">♥ Heart</button>
+            <button type="button" class="btn-pill-xs" data-shape="diamond" id="btnMainDrawDiamond" style="background: rgba(255,255,255,0.08); color: #cbd5e1; padding: 2px 8px; font-size: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">◇ Diamond</button>
+            <button type="button" class="btn-pill-xs" id="btnBannerOpenAllShapes" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; padding: 2px 9px; font-size: 11px; border-radius: 12px; cursor: pointer;">All Shapes (41) ▾</button>
+            <button type="button" class="btn-pill-xs" id="btnBannerCombineShapes" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; font-weight: 700; padding: 2px 9px; font-size: 11px; border-radius: 12px; cursor: pointer;">⚡ Combine</button>
+          </div>
+          <button class="draw-banner-exit-btn" id="btnExitDrawMode" title="Exit Draw Mode (Esc)">Done (Esc)</button>
+        </div>
+      </div>
+
+      <!-- Navigation Arrows -->
+      <button class="stage-nav-arrow left" id="btnStagePrevSpread" title="Previous Spread">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button class="stage-nav-arrow right" id="btnStageNextSpread" title="Next Spread">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Photo Frame Right-Side Inspector (Touched Photo Large + Adjustments Below) -->
+      <aside class="photo-frame-preview-bar frame-inspector-right" id="photoFramePreviewBar" style="display: none;">
+        <div class="inspector-header">
+          <div class="inspector-header-title">
+            <span class="inspector-status-dot"></span>
+            <span class="preview-bar-slot-name" id="previewBarSlotName">Frame 1</span>
+          </div>
+          <button class="btn-icon" id="btnClosePreviewBar" title="Close Inspector (Deselect Frame)">
+            &times;
+          </button>
+        </div>
+
+        <!-- Large Touched Photo Preview Card -->
+        <div class="inspector-large-image-card">
+          <div class="inspector-image-container">
+            <img id="previewBarThumb" src="" alt="Selected Photo" class="inspector-large-img">
+          </div>
+          <div class="inspector-image-meta">
+            <span class="preview-bar-photo-name inspector-photo-title" id="previewBarPhotoName">Photo Name</span>
+            <span class="inspector-aspect-pill" id="previewBarPhotoAspect">Aspect Ratio</span>
+          </div>
+        </div>
+
+        <!-- Adjustments Below the Large Image -->
+        <div class="inspector-adjustments-container">
+          <!-- Rescale / Zoom Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Rescale & Zoom</span>
+              <span class="preview-bar-val inspector-zoom-pill" id="previewBarZoomVal">100%</span>
+            </div>
+            <div class="inspector-slider-row">
+              <button class="preview-bar-btn" id="btnPreviewZoomOut" title="Zoom Out">-</button>
+              <input type="range" class="preview-bar-slider inspector-slider" id="previewBarZoomSlider" min="1.0" max="3.0" step="0.05" value="1.0">
+              <button class="preview-bar-btn" id="btnPreviewZoomIn" title="Zoom In">+</button>
+            </div>
+            <div class="inspector-zoom-presets">
+              <button class="btn-pill-sm inspector-preset-btn" data-zoom="1.0">Fit (100%)</button>
+              <button class="btn-pill-sm inspector-preset-btn" data-zoom="1.25">125%</button>
+              <button class="btn-pill-sm inspector-preset-btn" data-zoom="1.5">150%</button>
+              <button class="btn-pill-sm inspector-preset-btn" data-zoom="2.0">200%</button>
+            </div>
+          </div>
+
+          <!-- Repositioning Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Reposition Photo in Frame</span>
+              <button class="btn-pill-sm" id="btnPreviewPanCenter" title="Reset to Center">⌖ Center</button>
+            </div>
+            <div class="inspector-nudge-pad">
+              <div class="nudge-row top">
+                <button class="preview-bar-btn nudge-btn" id="btnPreviewPanUp" title="Nudge Up">⇧</button>
+              </div>
+              <div class="nudge-row middle">
+                <button class="preview-bar-btn nudge-btn" id="btnPreviewPanLeft" title="Nudge Left">⇦</button>
+                <div class="nudge-center-indicator">⌖</div>
+                <button class="preview-bar-btn nudge-btn" id="btnPreviewPanRight" title="Nudge Right">⇨</button>
+              </div>
+              <div class="nudge-row bottom">
+                <button class="preview-bar-btn nudge-btn" id="btnPreviewPanDown" title="Nudge Down">⇩</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mirror & Flip Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Mirror & Orientation</span>
+            </div>
+            <div class="inspector-actions-row">
+              <button class="btn-pill inspector-action-btn" id="btnPreviewFlipH" title="Flip Horizontally (Mirror image)">
+                ⇄ Flip H
+              </button>
+              <button class="btn-pill inspector-action-btn" id="btnPreviewFlipV" title="Flip Vertically">
+                ⇅ Flip V
+              </button>
+              <button class="btn-pill inspector-action-btn" id="btnPreviewRotate" title="Rotate Photo 90° Clockwise">
+                ↻ 90°
+              </button>
+            </div>
+            <div class="inspector-actions-row" style="margin-top: 6px;">
+              <button class="btn-pill inspector-action-btn" id="btnPreviewSwitchLeftRight" title="Switch selected frame(s) to opposite side (Left ↔ Right page)" style="width: 100%;">
+                ⇄ Switch Left ↔ Right Page
+              </button>
+            </div>
+          </div>
+
+          <!-- Layer Arrange & Z-Order Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Layer Arrange (Overlapping Frames)</span>
+            </div>
+            <div class="inspector-actions-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <button class="btn-pill-sm" id="btnPreviewBringToFront" title="Bring Frame to Front (Topmost Layer • Ctrl+Shift+])" style="font-size: 11px; padding: 6px;">
+                ⤉ Front
+              </button>
+              <button class="btn-pill-sm" id="btnPreviewBringForward" title="Bring Frame Forward 1 layer (Ctrl+])" style="font-size: 11px; padding: 6px;">
+                ⤒ Forward
+              </button>
+              <button class="btn-pill-sm" id="btnPreviewSendBackward" title="Send Frame Backward 1 layer (Ctrl+[)" style="font-size: 11px; padding: 6px;">
+                ⤓ Backward
+              </button>
+              <button class="btn-pill-sm" id="btnPreviewSendToBack" title="Send Frame to Back (Bottommost Layer • Ctrl+Shift+[)" style="font-size: 11px; padding: 6px;">
+                ⤈ Back
+              </button>
+            </div>
+          </div>
+
+          <!-- Crop & Framing Mode Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Crop & Framing</span>
+              <span class="preview-bar-val inspector-zoom-pill" id="previewBarCropModeVal">Cover</span>
+            </div>
+            <div class="inspector-framing-modes">
+              <button class="btn-pill-sm inspector-crop-btn active" id="btnCropModeCover" title="Fill entire box frame (cover)">
+                🖼 Fill Frame
+              </button>
+              <button class="btn-pill-sm inspector-crop-btn" id="btnCropModeContain" title="Fit whole photo inside frame without cropping">
+                ⊡ Fit Whole
+              </button>
+            </div>
+          </div>
+
+          <!-- Light & Color Adjustments Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Light & Color Adjustments</span>
+              <button class="btn-pill-sm" id="btnResetAdjustments" title="Reset all adjustments back to normal">↺ Reset</button>
+            </div>
+            
+            <!-- Quick Preset Chips -->
+            <div class="inspector-presets-scroll">
+              <button class="inspector-preset-chip active" data-preset="original">Original</button>
+              <button class="inspector-preset-chip" data-preset="bw">B&W Classic</button>
+              <button class="inspector-preset-chip" data-preset="warm">Warm Film</button>
+              <button class="inspector-preset-chip" data-preset="vibrant">Vibrant</button>
+              <button class="inspector-preset-chip" data-preset="matte">Matte</button>
+            </div>
+
+            <!-- Brightness Slider -->
+            <div class="inspector-slider-block">
+              <div class="inspector-slider-meta">
+                <span>Brightness</span>
+                <span id="previewBarBrightnessVal">100%</span>
+              </div>
+              <input type="range" class="preview-bar-slider inspector-slider" id="previewBarBrightness" min="40" max="180" step="2" value="100">
+            </div>
+
+            <!-- Contrast Slider -->
+            <div class="inspector-slider-block">
+              <div class="inspector-slider-meta">
+                <span>Contrast</span>
+                <span id="previewBarContrastVal">100%</span>
+              </div>
+              <input type="range" class="preview-bar-slider inspector-slider" id="previewBarContrast" min="40" max="180" step="2" value="100">
+            </div>
+
+            <!-- Saturation Slider (0% is instant B&W) -->
+            <div class="inspector-slider-block">
+              <div class="inspector-slider-meta">
+                <span>Saturation (Color / B&W)</span>
+                <span id="previewBarSaturationVal">100%</span>
+              </div>
+              <input type="range" class="preview-bar-slider inspector-slider" id="previewBarSaturation" min="0" max="200" step="5" value="100">
+            </div>
+
+            <!-- Warmth Slider -->
+            <div class="inspector-slider-block">
+              <div class="inspector-slider-meta">
+                <span>Warmth / Tone</span>
+                <span id="previewBarWarmthVal">0</span>
+              </div>
+              <input type="range" class="preview-bar-slider inspector-slider" id="previewBarWarmth" min="-50" max="50" step="2" value="0">
+            </div>
+          </div>
+
+          <!-- Actions Card -->
+          <div class="inspector-card">
+            <div class="inspector-card-header">
+              <span class="inspector-card-label">Frame Actions</span>
+            </div>
+            <div class="inspector-actions-row" style="flex-direction: column; gap: 8px;">
+              <button class="btn-pill btn-primary inspector-action-btn" id="btnPreviewSwapPhoto" title="Interchange / Swap Photo with another frame on this spread" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; font-weight: 600;">
+                ⇄ Interchange / Swap Photo
+              </button>
+              <button class="btn-pill btn-secondary inspector-action-btn" id="btnPreviewRemovePhoto" title="Remove Photo from Frame (Photo returns to unused photos pool)">
+                🗑 Remove Photo (Keep Empty Frame)
+              </button>
+              <button class="btn-pill btn-danger inspector-action-btn" id="btnPreviewDeleteFrame" title="Delete Frame from Spread (Photo returns to unused photos pool)">
+                ❌ Delete Frame from Canvas
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Floating Transparent Template Tool Icon (Left of Canvas) -->
+      <div class="canvas-left-template-dock" id="canvasLeftTemplateDock">
+        <button class="canvas-left-template-btn" id="btnTemplateFloatingMenu" title="Template Options: Save as New Template or Modify Template">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="12" y1="3" x2="12" y2="21"></line>
+            <path d="M7 8h2"></path>
+            <path d="M15 8h2"></path>
+            <path d="M15 14h2"></path>
+            <path d="M7 14h2"></path>
+          </svg>
+          <span class="template-btn-badge">+</span>
+        </button>
+
+        <!-- Transparent Floating Popover Menu -->
+        <div class="template-floating-popover" id="templateFloatingPopover">
+          <div class="template-popover-header">
+            <div class="template-popover-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #38bdf8;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+              </svg>
+              <span>Spread Template Tools</span>
+            </div>
+            <button class="template-popover-close" id="btnCloseTemplatePopover" title="Close">&times;</button>
+          </div>
+
+          <div class="template-popover-actions">
+            <!-- 1. Save As New Template -->
+            <button class="template-action-btn primary" id="btnSaveAsNewTemplate">
+              <div class="template-action-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <line x1="12" y1="11" x2="12" y2="17"></line>
+                  <line x1="9" y1="14" x2="15" y2="14"></line>
+                </svg>
+              </div>
+              <div class="template-action-details">
+                <span class="template-action-name">Save as New Template</span>
+                <span class="template-action-desc">Save current layout into library</span>
+              </div>
+            </button>
+
+            <!-- 2. Modify / Overwrite Existing Template -->
+            <button class="template-action-btn" id="btnModifyExistingTemplate">
+              <div class="template-action-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+              <div class="template-action-details">
+                <span class="template-action-name">Modify Current Template</span>
+                <span class="template-action-desc">Update template with modified frames</span>
+              </div>
+            </button>
+
+            <!-- 3. Manage Custom Templates -->
+            <button class="template-action-btn" id="btnManageCustomTemplates">
+              <div class="template-action-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </div>
+              <div class="template-action-details">
+                <span class="template-action-name">Custom Templates Manager</span>
+                <span class="template-action-desc" id="customTemplatesCountDesc">Manage saved templates</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spread Canvas Viewport with Top & Side Rulers in Inches -->
+      <div class="canvas-viewport-wrapper" id="canvasWrapper">
+        <div class="canvas-ruler-corner" id="rulerCorner" title="Rulers in Inches (in)">in</div>
+        <canvas class="canvas-ruler-top" id="rulerTop" height="22"></canvas>
+        <canvas class="canvas-ruler-left" id="rulerLeft" width="22"></canvas>
+        <div class="canvas-inner-viewport" id="canvasInnerViewport">
+          <canvas id="spreadCanvas"></canvas>
+          <div class="canvas-drop-hint-overlay" id="canvasDropOverlay" style="display: none !important; pointer-events: none !important; visibility: hidden !important;">
+            <div class="drop-hint-badge" style="display: none !important;">📥 Drop selected photos onto spread</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Dedicated Canvas Spread Zoom Controller HUD -->
+      <div class="canvas-zoom-hud" id="canvasZoomHud" title="Zoom entire canvas spread (or scroll mouse wheel outside photo frames)">
+        <span class="zoom-label">🔍 Canvas</span>
+        <button class="zoom-btn" id="btnZoomOut" title="Zoom Out Canvas Spread (−)">−</button>
+        <button class="zoom-level-pill" id="btnZoomReset" title="Click to Reset / Fit Canvas to Screen">100%</button>
+        <button class="zoom-btn" id="btnZoomIn" title="Zoom In Canvas Spread (+)">+</button>
+      </div>
+
+    </div>
+
+    <!-- ==================== 1. Controls & Format Settings Side Panel ==================== -->
+    <aside class="studio-aside-panel controls-aside-panel" id="dockControlsPanel" aria-label="Controls & Format Settings Panel">
+      <div class="studio-aside-header">
+        <div class="studio-aside-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #38bdf8;">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Controls &amp; Format Settings</span>
+        </div>
+        <button type="button" class="studio-aside-close" id="btnCloseDockControls" title="Close Panel (Esc)">&times;</button>
+      </div>
+
+      <div class="studio-aside-body">
+        <!-- 1. HERO: Export Option -->
+        <div class="popover-export-hero" style="margin-bottom: 4px;">
+          <button class="btn-export-hero" id="btnExport" title="Export Print-Ready PDF / High-Res Spreads">
+            <div class="export-hero-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <div class="export-hero-info">
+              <div class="export-hero-heading">Export Photobook</div>
+              <div class="export-hero-desc">Print-Ready PDF &amp; Lab Spreads (300 DPI)</div>
+            </div>
+            <span class="export-hero-arrow">➔</span>
+          </button>
+        </div>
+
+        <!-- 2. Album Format & Page Mode Section -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Album Format &amp; Page Mode</div>
+          <div class="popover-field-row">
+            <label class="popover-field-label">Size / Format:</label>
+            <select class="toolbar-select popover-select" id="albumSizeSelect">
+              <optgroup label="Square Album Spreads">
+                <option value="12x12" selected>12 × 12" Square Album (Spread: 24 × 12")</option>
+                <option value="10x10">10 × 10" Square Album (Spread: 20 × 10")</option>
+                <option value="8x8">8 × 8" Square Album (Spread: 16 × 8")</option>
+              </optgroup>
+              <optgroup label="Standard Sizes (From Chart)">
+                <option value="12x16">12 × 16" A3 (Spread: 32 × 12" Landscape / 24 × 16" Portrait)</option>
+                <option value="8x12">8 × 12" A4 (Spread: 24 × 8" Landscape / 16 × 12" Portrait)</option>
+                <option value="6x8">6 × 8" A5 (Spread: 16 × 6" Landscape / 12 × 8" Portrait)</option>
+                <option value="4x6">4 × 6" A6 (Spread: 12 × 4" Landscape / 8 × 6" Portrait)</option>
+                <option value="5x7">5 × 7" (Spread: 14 × 5" Landscape / 10 × 7" Portrait)</option>
+                <option value="8x10">8 × 10" Standard (Spread: 20 × 8" Landscape / 16 × 10" Portrait)</option>
+                <option value="10x12">10 × 12" (Spread: 24 × 10" Landscape / 20 × 12" Portrait)</option>
+                <option value="10x15">10 × 15" (Spread: 30 × 10" Landscape / 20 × 15" Portrait)</option>
+                <option value="11x14">11 × 14" Luxury (Spread: 28 × 11" Landscape / 22 × 14" Portrait)</option>
+                <option value="12x18">12 × 18" (Spread: 36 × 12" Landscape / 24 × 18" Portrait)</option>
+              </optgroup>
+              <optgroup label="Large Format &amp; Posters (From Chart)">
+                <option value="16x20">16 × 20" A2 (Spread: 40 × 16" Landscape / 32 × 20" Portrait)</option>
+                <option value="16x24">16 × 24" (Spread: 48 × 16" Landscape / 32 × 24" Portrait)</option>
+                <option value="20x24">20 × 24" A1 (Spread: 48 × 20" Landscape / 40 × 24" Portrait)</option>
+                <option value="20x30">20 × 30" (Spread: 60 × 20" Landscape / 40 × 30" Portrait)</option>
+                <option value="24x36">24 × 36" (Spread: 72 × 24" Landscape / 48 × 36" Portrait)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="popover-field-row" style="margin-top: 6px;">
+            <label class="popover-field-label">Layout Mode:</label>
+            <div class="header-btn-group" style="background-color: var(--bg-secondary); flex: 1;">
+              <button class="toolbar-toggle-btn active" id="btnModeSpread" title="Double Page Open Album Spread" style="flex: 1; text-align: center;">📖 Double Spread</button>
+              <button class="toolbar-toggle-btn" id="btnModeSingle" title="Single Page / Print (No Center Crease)" style="flex: 1; text-align: center;">📄 Single Page</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2B. Spread Layouts Section (with mouse wheel / roll ball scrolling) -->
+        <div class="aside-card-section" id="controlsLayoutsSection">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div class="aside-section-label" style="margin-bottom: 0;">Spread Layouts</div>
+            <span id="controlsLayoutsCountBadge" style="font-size: 10px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 1px 6px; border-radius: 6px;">0 Layouts</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <button type="button" class="btn-icon" id="btnControlsPrevLayout" title="Previous Layout (Shift + Space or roll mouse wheel left/up)" style="width: 26px; height: 38px; border-radius: 4px; flex-shrink: 0; background: rgba(255, 255, 255, 0.05);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="controls-layouts-strip" id="controlsLayoutsStrip" style="flex: 1; display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px; scrollbar-width: thin; scroll-behavior: smooth;">
+              <!-- Miniature blueprint layout chips rendered dynamically -->
+            </div>
+            <button type="button" class="btn-icon" id="btnControlsNextLayout" title="Next Layout (Space or roll mouse wheel right/down)" style="width: 26px; height: 38px; border-radius: 4px; flex-shrink: 0; background: rgba(255, 255, 255, 0.05);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px; color: var(--text-dim);">
+            <span>Roll mouse wheel to scroll layouts</span>
+            <button type="button" class="btn-pill-sm" id="btnControlsOpenAllLayouts" style="font-size: 10px; padding: 1px 6px; background: none; border: none; color: #38bdf8; cursor: pointer; text-decoration: underline;">View All (<span class="real-template-total">384</span>) →</button>
+          </div>
+        </div>
+
+        <!-- 3. Spacing, Margins & Gaps Section -->
+        <div class="aside-card-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="aside-section-label" style="margin-bottom: 0;">Margins &amp; Spacing</div>
+            <span id="labelSpacingTargetSpread" style="font-size: 10px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 1px 6px; border-radius: 6px;">Spread 1</span>
+          </div>
+
+          <!-- Scope Toggle: Current Spread Only vs All Spreads -->
+          <div style="display: flex; gap: 4px; margin-bottom: 10px; background: rgba(0, 0, 0, 0.3); padding: 3px; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.06);">
+            <button type="button" class="toolbar-toggle-btn active" id="btnScopeCurrentSpread" title="Apply margin &amp; gap settings only to the currently selected spread" style="flex: 1; font-size: 11px; padding: 4px 6px; height: 26px; text-align: center;">📖 Current Spread</button>
+            <button type="button" class="toolbar-toggle-btn" id="btnScopeAllSpreads" title="Apply margin &amp; gap settings globally to all spreads across the album" style="flex: 1; font-size: 11px; padding: 4px 6px; height: 26px; text-align: center;">🌐 All Spreads</button>
+          </div>
+          
+          <div class="popover-slider-row">
+            <span class="popover-slider-title">Outer Margin</span>
+            <input type="range" class="toolbar-slider popover-range" id="marginSlider" min="0" max="10" step="0.5" value="2">
+            <span class="popover-val-badge" id="marginVal">2%</span>
+          </div>
+
+          <div class="popover-slider-row">
+            <span class="popover-slider-title">Photo Gap</span>
+            <input type="range" class="toolbar-slider popover-range" id="gapSlider" min="0" max="40" step="2" value="8">
+            <span class="popover-val-badge" id="gapVal">8px</span>
+          </div>
+
+          <div class="popover-slider-row" id="middleMarginGroup">
+            <span class="popover-slider-title">Spine Crease</span>
+            <input type="range" class="toolbar-slider popover-range" id="middleMarginSlider" min="0" max="8" step="0.5" value="0">
+            <span class="popover-val-badge" id="middleMarginVal">0%</span>
+          </div>
+        </div>
+
+        <!-- 4. Guides, Bleed & Page Background -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Guidelines &amp; Display</div>
+          <div class="popover-toggles-row">
+            <button class="toolbar-toggle-btn active" id="toggleGuides" title="Show Print Safety Lines" style="flex: 1;">Safe Zone</button>
+            <button class="toolbar-toggle-btn" id="toggleBleed" title="Full Bleed Spreads" style="flex: 1;">Full Bleed</button>
+            <div class="popover-color-item" title="Paper Background Color">
+              <span style="font-size: 11px; color: var(--text-dim); margin-right: 4px;">Paper:</span>
+              <input type="color" id="bgColorPicker" value="#ffffff" title="Background Color" style="width: 24px; height: 24px; border: 1px solid var(--border-subtle); border-radius: 4px; background: none; cursor: pointer;">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Project Save & Spread Navigation -->
+        <div class="aside-card-section" style="border-bottom: none; padding-bottom: 2px;">
+          <div class="aside-section-label">Project &amp; Navigation</div>
+          <button class="toolbar-toggle-btn" id="btnNewProjectToolbar" title="Create New Photobook Project" style="width: 100%; height: 32px; margin-bottom: 8px; background: rgba(2, 132, 199, 0.18); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span>Create New Project...</span>
+          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="toolbar-toggle-btn toolbar-btn-blue save-btn" id="btnSaveProjectToolbar" title="Save Project (Ctrl + S)" style="flex: 1; height: 32px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Save Project
+            </button>
+            <button class="toolbar-toggle-btn toolbar-btn-blue save-as-btn" id="btnSaveAsProjectToolbar" title="Save As New Project File" style="flex: 1; height: 32px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+                <line x1="12" y1="11" x2="12" y2="17"></line>
+                <line x1="9" y1="14" x2="15" y2="14"></line>
+              </svg>
+              Save As...
+            </button>
+            <div class="header-btn-group" style="height: 32px;">
+              <button class="btn-icon" id="btnPrevSpread" title="Previous Spread (Left Arrow)" style="width: 32px; height: 32px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <button class="btn-icon" id="btnNextSpread" title="Next Spread (Right Arrow)" style="width: 32px; height: 32px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== 2. Available Spreads Catalog Side Panel ==================== -->
+    <aside class="studio-aside-panel layouts-drawer" id="layoutsDrawer" aria-label="Available Spreads Catalog">
+      <div class="studio-aside-header drawer-header">
+        <div>
+          <div class="studio-aside-title drawer-title" id="drawerLayoutsCount">Available Layouts (<span class="real-template-total">384</span> Options)</div>
+          <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Hover to preview blueprint, click to apply</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn-pill-sm" id="btnDrawerOpenBigView" title="Open large template browser" style="padding: 2px 8px; font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">
+            ⛶ Big View
+          </button>
+          <button type="button" class="studio-aside-close" id="btnCloseDrawer" title="Close Panel (Esc)">&times;</button>
+        </div>
+      </div>
+      <div class="drawer-filter-bar" id="drawerFilterBar">
+        <button class="drawer-filter-tab active" data-filter="best-match">✨ Best Match</button>
+        <button class="drawer-filter-tab" data-filter="all">All (<span class="real-template-total">384</span>)</button>
+        <button class="drawer-filter-tab" data-filter="landscape">Wide</button>
+        <button class="drawer-filter-tab" data-filter="portrait">Tall</button>
+      </div>
+      <div class="drawer-content" id="catalogGrid">
+        <!-- SVG Layout Preview Cards injected dynamically -->
+      </div>
+    </aside>
+
+    <!-- ==================== 3. Design Layout Side Panel ==================== -->
+    <aside class="studio-aside-panel design-layout-aside" id="designLayoutAside" aria-label="Design Layout Panel">
+      <div class="studio-aside-header">
+        <div class="studio-aside-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #38bdf8;">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          <span>Design Layout</span>
+        </div>
+        <button type="button" class="studio-aside-close" id="btnCloseDesignLayout" title="Close Panel (Esc)">&times;</button>
+      </div>
+      <div class="studio-aside-body">
+        <!-- Section 1: Quick Layout Cycling -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Layout Stepper</div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="aside-action-btn" id="btnHudPrevLayout" title="Previous Layout (Shift + Space)">
+              <span>←</span>
+              <span>Prev Layout</span>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnHudNextLayout" title="Next Layout (Space)">
+              <span>Next Layout</span>
+              <span>→</span>
+            </button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px; text-align: center;">
+            Shortcuts: <kbd>Space</kbd> next &bull; <kbd>Shift+Space</kbd> previous
+          </div>
+        </div>
+
+        <!-- Section 2: Transformations & Variations -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Smart Transformations</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="aside-action-btn hero-action" id="btnRandomizeLayout" title="Vary Rectangles / Aspect Ratios (Hotkey: R)">
+              <span style="font-size: 15px; color: #f59e0b;">⚡</span>
+              <div style="text-align: left; flex: 1;">
+                <div style="font-weight: 700; color: #f8fafc;">Vary Rectangles</div>
+                <div style="font-size: 10px; color: var(--text-dim);">Reshuffle slot proportions &amp; aspect ratios (R)</div>
+              </div>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnHudSwitchLeftRight" title="Switch Frames Left to Right / Mirror Spread (Hotkey: H)">
+              <span style="font-size: 14px;">⇄</span>
+              <div style="text-align: left; flex: 1;">
+                <div style="font-weight: 600;">Switch Left ↔ Right</div>
+                <div style="font-size: 10px; color: var(--text-dim);">Mirror photo frames across center crease (H)</div>
+              </div>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnDesignShufflePhotos" title="Shuffle Photos across existing frames">
+              <span style="font-size: 14px;">🔀</span>
+              <div style="text-align: left; flex: 1;">
+                <div style="font-weight: 600;">Shuffle Photos</div>
+                <div style="font-size: 10px; color: var(--text-dim);">Re-distribute photos randomly across frames</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 3: Frame Drawing & Custom Layout -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Custom Photo Frames</div>
+          <button type="button" class="aside-action-btn" id="btnHudDrawFrame" title="Draw Rectangle to Add Photo Frame (Hotkey: D)">
+            <span style="font-size: 14px;">✏️</span>
+            <div style="text-align: left; flex: 1;">
+              <div style="font-weight: 600;">Draw Photo Frame</div>
+              <div style="font-size: 10px; color: var(--text-dim);">Click &amp; drag on canvas to draw new slot (D)</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Section 4: Jump to Full Catalog -->
+        <div class="aside-card-section" style="border-bottom: none;">
+          <button type="button" class="toolbar-toggle-btn toolbar-btn-blue" id="btnDesignOpenAllLayouts" style="width: 100%; height: 34px; justify-content: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Browse All 384 Spread Templates →</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== 4. Draw Frame 41 Shapes Library Side Panel ==================== -->
+    <aside class="studio-aside-panel shapes-aside-panel" id="dockDrawShapesPanel" aria-label="Draw Frame 41 Shapes Library">
+      <div class="studio-aside-header">
+        <div class="studio-aside-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #a855f7;">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          <span>Draw Frame &bull; 41 Shapes</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-pill-xs" id="btnOpenCombinerTop" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; font-weight: 700; border: none; padding: 3px 10px; border-radius: 12px; cursor: pointer;">⚡ Combine</button>
+          <button type="button" class="studio-aside-close" id="btnCloseDrawShapesPanel" title="Close Panel (Esc)">&times;</button>
+        </div>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="draw-shapes-controls">
+        <div class="draw-shapes-search-wrap">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-dim);">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="inputDrawShapeSearch" class="draw-shapes-search-input" placeholder="Search shapes (e.g. circle, star, heart)..." />
+          <button type="button" id="btnClearShapeSearch" class="draw-shapes-search-clear" style="display: none;">&times;</button>
+        </div>
+        <div class="draw-shapes-cat-tabs" id="drawShapesCatTabs">
+          <button type="button" class="draw-cat-pill active" data-cat="all">All (41)</button>
+          <button type="button" class="draw-cat-pill" data-cat="geometric">Geometric</button>
+          <button type="button" class="draw-cat-pill" data-cat="polygons">Polygons</button>
+          <button type="button" class="draw-cat-pill" data-cat="creative">Creative</button>
+          <button type="button" class="draw-cat-pill" data-cat="curves3d">Curves &amp; 3D</button>
+        </div>
+      </div>
+
+      <!-- Shapes Grid Container (41 Shapes) -->
+      <div class="draw-shapes-scroll-area">
+        <div class="draw-shapes-grid" id="drawShapesGrid">
+          <!-- Dynamically populated with 41 interactive shape chips -->
+        </div>
+      </div>
+
+      <!-- Bottom Combiner Action Banner -->
+      <div class="draw-shapes-footer">
+        <div class="draw-shapes-footer-status">
+          <span>Active Shape: <strong id="drawShapesFooterCurrent" style="color: #38bdf8;">Rectangle</strong></span>
+        </div>
+        <button type="button" class="btn-pill" id="btnOpenShapeCombiner" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)); border: 1px solid rgba(168, 85, 247, 0.5); color: #e2e8f0; font-size: 11px; padding: 4px 12px; cursor: pointer;">
+          ⚡ Combine Shapes (SVG, Canvas, Python, Cairo, JS)...
+        </button>
+      </div>
+    </aside>
+
+    <!-- ==================== 5. Adobe Photoshop Style Character & Paragraph Side Panel ==================== -->
+    <aside class="studio-aside-panel ps-character-panel" id="textCharacterPanel" aria-label="Photoshop Typography Character Panel">
+      <div class="ps-panel-header studio-aside-header">
+        <div class="ps-panel-tabs">
+          <span class="ps-tab active" id="tabCharacter">CHARACTER</span>
+          <span class="ps-tab" id="tabParagraph">PARAGRAPH</span>
+        </div>
+        <div class="ps-header-actions">
+          <button type="button" class="studio-aside-close" id="btnCloseTextEditor" title="Close Panel (Esc)">&times;</button>
+        </div>
+      </div>
+
+      <div class="ps-panel-body studio-aside-body">
+        <!-- Quick Text Style Presets -->
+        <div class="aside-card-section" style="padding-top: 0;">
+          <div class="aside-section-label">Add Text Preset</div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+            <button type="button" class="aside-action-btn" id="btnPresetTitleText" title="Add Large Title Header">
+              <span style="font-family: 'Playfair Display', serif; font-weight: 700; font-size: 14px;">T</span>
+              <span>Heading Title</span>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnPresetSubtitleText" title="Add Subtitle">
+              <span style="font-family: sans-serif; font-weight: 600; font-size: 12px;">Aa</span>
+              <span>Subtitle</span>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnPresetCaptionText" title="Add Caption / Story">
+              <span style="font-style: italic; font-size: 12px;">“ ”</span>
+              <span>Caption / Quote</span>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnPresetDateText" title="Add Date & Place">
+              <span>📅</span>
+              <span>Date &amp; Location</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Text Content Editor -->
+        <div class="ps-section">
+          <label class="ps-label">Text Content</label>
+          <textarea class="ps-textarea" id="inputTextEditorContent" rows="3" placeholder="Enter headline, title, names, or captions..."></textarea>
+        </div>
+
+        <!-- Font Family & Weight Row -->
+        <div class="ps-section">
+          <div class="ps-field-group">
+            <label class="ps-label">Font Family</label>
+            <select class="ps-select" id="selectTextFontFamily">
+              <option value="Playfair Display, Georgia, serif">Playfair Display (Serif)</option>
+              <option value="Georgia, serif">Georgia (Classic Serif)</option>
+              <option value="'Great Vibes', cursive">Great Vibes (Calligraphy)</option>
+              <option value="'Cinzel', serif">Cinzel (Luxury Roman)</option>
+              <option value="'Cormorant Garamond', serif">Cormorant (Elegant Serif)</option>
+              <option value="'Dancing Script', cursive">Dancing Script (Casual Script)</option>
+              <option value="Montserrat, sans-serif">Montserrat (Modern Clean)</option>
+              <option value="'Open Sans', sans-serif">Open Sans (Clean Sans)</option>
+              <option value="Impact, sans-serif">Impact (Bold Title)</option>
+              <option value="Arial, sans-serif">Arial (Standard)</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Courier New', monospace">Courier New (Monospace)</option>
+            </select>
+          </div>
+          <div class="ps-field-group" style="margin-top: 8px;">
+            <label class="ps-label">Font Style</label>
+            <select class="ps-select" id="selectTextFontStyle">
+              <option value="regular">Regular</option>
+              <option value="bold" selected>Bold</option>
+              <option value="italic">Italic</option>
+              <option value="bold-italic">Bold Italic</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Photoshop Metric Controls (Font Size with Steppers & Color) -->
+        <div class="ps-metrics-grid">
+          <!-- Font Size (TT) -->
+          <div class="ps-metric-item">
+            <div class="ps-metric-label-row">
+              <span class="ps-metric-icon" title="Font Size">TT</span>
+              <span class="ps-metric-name">Size</span>
+            </div>
+            <div class="ps-metric-input-wrapper">
+              <input type="number" class="ps-metric-input" id="numTextFontSize" min="8" max="250" value="28">
+              <span class="ps-metric-unit">px</span>
+              <div class="ps-steppers">
+                <button type="button" class="ps-step-btn" id="btnFontSizeUp" title="Increase Size">▲</button>
+                <button type="button" class="ps-step-btn" id="btnFontSizeDown" title="Decrease Size">▼</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Color Swatch -->
+          <div class="ps-metric-item">
+            <div class="ps-metric-label-row">
+              <span class="ps-metric-icon" title="Color" style="font-size: 11px;">🎨</span>
+              <span class="ps-metric-name">Color</span>
+            </div>
+            <div class="ps-metric-input-wrapper" style="padding-right: 4px;">
+              <div class="ps-color-preview-box" id="psColorBoxPreview" style="background-color: #1e293b;">
+                <input type="color" id="pickerTextColor" value="#1e293b" class="ps-native-color-input">
+              </div>
+              <input type="text" class="ps-metric-input" id="inputTextHexColor" value="#1e293b" maxlength="7" style="font-family: monospace; font-size: 11px; text-transform: uppercase;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Font Size Fluid Range Slider -->
+        <div class="ps-section" style="padding-top: 2px;">
+          <input type="range" class="ps-range-slider" id="rangeTextFontSize" min="8" max="250" value="28">
+        </div>
+
+        <!-- Photoshop Character Style Toggles Bar -->
+        <div class="ps-section">
+          <label class="ps-label">Character Style Toggles</label>
+          <div class="ps-toggle-bar" id="psCharacterToggleBar">
+            <button type="button" class="ps-toggle-btn active" id="btnTextWeightBold" title="Faux Bold (Bold)">
+              <strong>T</strong>
+            </button>
+            <button type="button" class="ps-toggle-btn" id="btnTextStyleItalic" title="Faux Italic (Italic)">
+              <em>T</em>
+            </button>
+            <button type="button" class="ps-toggle-btn" id="btnTextAllCaps" title="All Caps (Uppercase)">
+              <span style="letter-spacing: -1px; font-weight: 800;">TT</span>
+            </button>
+            <button type="button" class="ps-toggle-btn" id="btnTextUnderline" title="Underline">
+              <span style="text-decoration: underline; font-weight: 700;">U</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paragraph Alignment -->
+        <div class="ps-section">
+          <label class="ps-label">Paragraph Alignment</label>
+          <div class="ps-toggle-bar">
+            <button type="button" class="ps-toggle-btn" id="btnTextAlignLeft" title="Align Left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="17" y1="10" x2="3" y2="10"></line>
+                <line x1="21" y1="6" x2="3" y2="6"></line>
+                <line x1="21" y1="14" x2="3" y2="14"></line>
+                <line x1="17" y1="18" x2="3" y2="18"></line>
+              </svg>
+              <span>Left</span>
+            </button>
+            <button type="button" class="ps-toggle-btn active" id="btnTextAlignCenter" title="Align Center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="10" x2="6" y2="10"></line>
+                <line x1="21" y1="6" x2="3" y2="6"></line>
+                <line x1="21" y1="14" x2="3" y2="14"></line>
+                <line x1="18" y1="18" x2="6" y2="18"></line>
+              </svg>
+              <span>Center</span>
+            </button>
+            <button type="button" class="ps-toggle-btn" id="btnTextAlignRight" title="Align Right">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="21" y1="10" x2="7" y2="10"></line>
+                <line x1="21" y1="6" x2="3" y2="6"></line>
+                <line x1="21" y1="14" x2="3" y2="14"></line>
+                <line x1="21" y1="18" x2="7" y2="18"></line>
+              </svg>
+              <span>Right</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Color Palette Preset Swatches -->
+        <div class="ps-section">
+          <label class="ps-label">Color Swatches</label>
+          <div class="ps-swatches-grid" id="textColorSwatches">
+            <button type="button" class="ps-swatch-chip" data-color="#ffffff" style="background: #ffffff;" title="White"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#0f172a" style="background: #0f172a;" title="Rich Black"></button>
+            <button type="button" class="ps-swatch-chip active" data-color="#1e293b" style="background: #1e293b;" title="Dark Slate"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#64748b" style="background: #64748b;" title="Muted Gray"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#d4af37" style="background: #d4af37;" title="Champagne Gold"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#b45309" style="background: #b45309;" title="Warm Bronze"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#ef4444" style="background: #ef4444;" title="Crimson Red"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#0284c7" style="background: #0284c7;" title="Cyan Blue"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#10b981" style="background: #10b981;" title="Emerald Green"></button>
+            <button type="button" class="ps-swatch-chip" data-color="#8b5cf6" style="background: #8b5cf6;" title="Royal Violet"></button>
+          </div>
+        </div>
+
+        <!-- Photoshop Action Footer -->
+        <div class="ps-panel-footer">
+          <button type="button" class="ps-btn-delete" id="btnDeleteTextLayer" title="Delete this text layer from spread">
+            🗑️ Delete Layer
+          </button>
+          <button type="button" class="ps-btn-done" id="btnApplyTextEditor" title="Dismiss Panel">
+            Done
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== 6. Layout Variations & Spacing Side Panel ==================== -->
+    <aside class="studio-aside-panel vary-aside-panel" id="varyAside" aria-label="Layout Variations Panel">
+      <div class="studio-aside-header">
+        <div class="studio-aside-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span>Layout Variations &amp; Vary</span>
+        </div>
+        <button type="button" class="studio-aside-close" id="btnCloseVaryAside" title="Close Panel (Esc)">&times;</button>
+      </div>
+
+      <div class="studio-aside-body">
+        <!-- Hero Action: Vary Rectangles -->
+        <div class="aside-card-section" style="padding-top: 0;">
+          <button type="button" class="aside-action-btn hero-action" id="btnDockVaryAction" title="Vary Rectangles / Aspect Ratios (Hotkey: R)">
+            <span style="font-size: 18px; color: #f59e0b;">⚡</span>
+            <div style="text-align: left; flex: 1;">
+              <div style="font-weight: 700; color: #f8fafc; font-size: 13px;">Vary Rectangles (R)</div>
+              <div style="font-size: 11px; color: var(--text-dim);">Randomize frame aspect ratios &amp; positions</div>
+            </div>
+            <span style="color: #f59e0b; font-weight: 700;">➔</span>
+          </button>
+        </div>
+
+        <!-- Quick Layout Variations Actions -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Spread Variations</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="aside-action-btn" id="btnDockSwitchLRAction" title="Switch Frames Left ↔ Right (Hotkey: H)">
+              <span style="font-size: 14px;">⇄</span>
+              <div style="text-align: left; flex: 1;">
+                <div style="font-weight: 600;">Switch Left ↔ Right (H)</div>
+                <div style="font-size: 10px; color: var(--text-dim);">Mirror spread across the center spine</div>
+              </div>
+            </button>
+            <button type="button" class="aside-action-btn" id="btnVaryAsideShuffle" title="Shuffle Photos across slots">
+              <span style="font-size: 14px;">🔀</span>
+              <div style="text-align: left; flex: 1;">
+                <div style="font-weight: 600;">Shuffle Photos</div>
+                <div style="font-size: 10px; color: var(--text-dim);">Re-distribute photos without changing layout</div>
+              </div>
+            </button>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="aside-action-btn" id="btnDockPrevLayoutAction" title="Previous Layout (Shift + Space)">
+                <span>←</span>
+                <span>Prev Layout</span>
+              </button>
+              <button type="button" class="aside-action-btn" id="btnDockNextLayoutAction" title="Next Layout (Space)">
+                <span>Next Layout</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo Gap Variation Presets -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Photo Gap Presets</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;" id="varyGapPresets">
+            <button type="button" class="aside-preset-chip" data-gap="0">0px Flush</button>
+            <button type="button" class="aside-preset-chip" data-gap="4">4px Sleek</button>
+            <button type="button" class="aside-preset-chip active" data-gap="8">8px Clean</button>
+            <button type="button" class="aside-preset-chip" data-gap="16">16px Modern</button>
+            <button type="button" class="aside-preset-chip" data-gap="24">24px Wide</button>
+            <button type="button" class="aside-preset-chip" data-gap="32">32px Airy</button>
+          </div>
+        </div>
+
+        <!-- Outer Margin Variation Presets -->
+        <div class="aside-card-section">
+          <div class="aside-section-label">Outer Margin Presets</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;" id="varyMarginPresets">
+            <button type="button" class="aside-preset-chip" data-margin="0">0% Bleed</button>
+            <button type="button" class="aside-preset-chip" data-margin="1.5">1.5% Slim</button>
+            <button type="button" class="aside-preset-chip active" data-margin="2">2% Standard</button>
+            <button type="button" class="aside-preset-chip" data-margin="3.5">3.5% Mat</button>
+            <button type="button" class="aside-preset-chip" data-margin="5">5% Classic</button>
+            <button type="button" class="aside-preset-chip" data-margin="7">7% Gallery</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ==================== Spreads Filmstrip / Storyboard ==================== -->
+  <section class="filmstrip-section">
+    <div class="filmstrip-header">
+      <div class="filmstrip-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+          <line x1="7" y1="2" x2="7" y2="22"></line>
+          <line x1="17" y1="2" x2="17" y2="22"></line>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <line x1="2" y1="7" x2="7" y2="7"></line>
+          <line x1="2" y1="17" x2="7" y2="17"></line>
+          <line x1="17" y1="17" x2="22" y2="17"></line>
+          <line x1="17" y1="7" x2="22" y2="7"></line>
+        </svg>
+        <span>Spreads Timeline</span>
+        <span id="timelineProgressBadge" style="display: none; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.45); padding: 1.5px 8px; border-radius: 999px; letter-spacing: 0.3px; transition: all 0.2s ease;">
+          <span style="display: inline-block; width: 8px; height: 8px; border: 1.5px solid rgba(56, 189, 248, 0.3); border-top-color: #38bdf8; border-radius: 50%; animation: relinkSpin 0.8s linear infinite;"></span>
+          <span id="timelineProgressPercent">0%</span>
+        </span>
+        <span class="filmstrip-count-badge" id="filmstripSpreadCount">0 Spreads</span>
+        <span id="timelineAutoBuildBadge" style="display: none; align-items: center; gap: 6px; padding: 2px 10px; font-size: 11px; font-weight: 600; border-radius: 12px; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8;">
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #38bdf8;"></span>
+          <span id="timelineAutoBuildText">Auto-building: 0%</span>
+        </span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-dim);" id="filmstripMetaSubtitle">Drag to reorder spreads</div>
+    </div>
+    <div class="filmstrip-scroll-area">
+      <div id="filmstripList" style="display: flex; gap: 6px; align-items: center;">
+        <!-- Spread cards rendered dynamically -->
+      </div>
+      <div class="add-spread-card" id="btnAddSpread" title="Add Blank Spread">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Add Spread</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== Bottom Photo Tray / Media Pool ==================== -->
+  <section class="photo-tray-section" id="photoTraySection">
+    <div class="photo-tray-header">
+      <div class="tray-tabs">
+        <button class="tray-tab active" id="trayTabAll">All (0)</button>
+        <button class="tray-tab" id="trayTabUnused">Unused (0)</button>
+        <button class="tray-tab" id="trayTabUsed">Placed (0)</button>
+      </div>
+
+      <!-- Tray View Modes: Single Row Filmstrip vs Multi-Row Grid with Vertical Scroll Down -->
+      <div class="tray-view-toggles" id="trayViewToggles">
+        <button class="tray-toggle-btn active" id="btnTrayStripView" title="Horizontal Filmstrip View">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 2px;">
+            <rect x="2" y="7" width="20" height="10" rx="2"></rect>
+          </svg>
+          Strip
+        </button>
+        <button class="tray-toggle-btn" id="btnTrayGridView" title="Grid View — Scroll down through all rows of imported photos">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 2px;">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Grid (Scroll Down)
+        </button>
+        <button class="tray-toggle-btn" id="btnTrayExpand" title="Expand / Minimize Photo Tray Height">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 2px;">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          <span id="trayExpandLabel">Expand</span>
+        </button>
+      </div>
+
+      <div class="tray-selection-indicator" id="traySelectionIndicator" style="display: none;">
+        <span id="traySelectedCount">0 selected</span>
+        <button class="btn-pill" id="btnPlaceSelected" style="height: 24px; padding: 0 8px; font-size: 11px; font-weight: 700; background: var(--accent-gradient); border: none; color: #fff;">Place on Spread</button>
+        <button class="btn-pill" id="btnDeleteSelectedPhotos" title="Delete selected photo(s) from media pool (Del)" style="height: 24px; padding: 0 8px; font-size: 11px; font-weight: 700; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.45); color: #f87171; display: flex; align-items: center; gap: 4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Delete</span>
+        </button>
+        <button class="btn-icon" id="btnClearSelection" title="Clear Selection (Esc)" style="width: 22px; height: 22px; font-size: 15px; color: var(--text-dim);">&times;</button>
+      </div>
+
+      <div class="tray-actions">
+        <!-- Quick 1-Click Auto-Build Button -->
+        <button class="btn-pill btn-quick-autobuild" id="btnQuickAutoBuild" title="⚡ 1-Click Auto-Build Entire Photobook with Smart Layouts">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -1px; margin-right: 3px;">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          ⚡ Auto-Build Album
+        </button>
+
+        <!-- Re-link Photos Button for re-connecting original high-res folder (visible when relinking is needed) -->
+        <button class="btn-pill" id="btnRelinkPhotos" title="Locate & reconnect original high-resolution photo folder" style="display: inline-flex; font-size: 11px; font-weight: 700; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.45); color: #fbbf24; align-items: center; gap: 4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>🔗 Re-link Photos</span>
+        </button>
+        <input type="file" id="relinkFolderInput" webkitdirectory directory multiple style="display: none;">
+        <input type="file" id="folderFileInput" webkitdirectory directory multiple style="display: none;">
+        <input type="file" id="photoFileInput" multiple accept="image/*,.jpg,.jpeg,.png,.webp,.avif,.bmp,.tif,.tiff,.gif,.heic" style="display: none;">
+      </div>
+    </div>
+
+    <div class="photo-tray-scroll" id="photoTrayList">
+      <!-- Photos rendered dynamically -->
+    </div>
+  </section>
+
+  <!-- ==================== Unsaved Changes Confirmation Modal ==================== -->
+  <div class="modal-backdrop" id="modalUnsavedPrompt">
+    <div class="modal-window" style="max-width: 460px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Save Current Project?</span>
+        </div>
+        <button class="btn-icon" id="btnCloseUnsavedPrompt">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 18px 20px;">
+        <p style="font-size: 14px; color: var(--text-main); margin-bottom: 8px; line-height: 1.5;" id="unsavedPromptText">
+          Do you want to save changes to <strong id="unsavedProjectTitle" style="color: #38bdf8;">"Current Project"</strong> before starting a new one?
+        </p>
+        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+          Starting a new project will reset the current workspace. If you don't save, unsaved layouts and photos in this album will be lost.
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px;">
+        <button class="btn-pill" id="btnPromptCancel" style="min-width: 80px;">Cancel</button>
+        <button class="btn-pill" id="btnPromptDontSave" style="min-width: 90px; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">Don't Save</button>
+        <button class="btn-pill primary" id="btnPromptSave" style="min-width: 110px; background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);">Save & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== App Exit / Close Confirmation Modal ==================== -->
+  <div class="modal-backdrop" id="modalCloseAppPrompt" style="z-index: 100000;">
+    <div class="modal-window" style="max-width: 480px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid var(--border-strong);">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" id="closeAppModalIcon">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span id="closeAppModalTitle">Save Project Before Closing?</span>
+        </div>
+        <button class="btn-icon" id="btnCloseCloseAppModal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px 22px;">
+        <p style="font-size: 15px; color: var(--text-main); margin-bottom: 8px; font-weight: 600; line-height: 1.4;" id="closeAppPromptHeading">
+          Do you want to save changes to <span id="closeAppProjectTitle" style="color: #38bdf8;">"Project"</span>?
+        </p>
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 0;" id="closeAppPromptMessage">
+          If you close without saving, any newly arranged spreads, drawn frames, and photo adjustments will be lost.
+        </p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 14px 22px; flex-wrap: wrap;" id="closeAppModalFooter">
+        <button class="btn-pill" id="btnCloseAppCancel" style="min-width: 80px;">Cancel</button>
+        <button class="btn-pill" id="btnCloseAppDontSave" style="min-width: 95px; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">Don't Save</button>
+        <button class="btn-pill" id="btnCloseAppSaveAs" style="min-width: 105px; display: none;">Save As New...</button>
+        <button class="btn-pill primary" id="btnCloseAppSave" style="min-width: 125px; background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);">Save & Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Create New Project Modal ==================== -->
+  <div class="modal-backdrop" id="modalNewProject">
+    <div class="modal-window" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-primary);">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Create New Photobook Project</span>
+        </div>
+        <button class="btn-icon" id="btnCloseNewProject">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: calc(85vh - 140px); overflow-y: auto;">
+        
+        <!-- 1. Project Name -->
+        <div class="form-group">
+          <label class="form-label" for="inputNewProjectName">Project Name</label>
+          <input type="text" class="form-input" id="inputNewProjectName" value="Wedding Album" placeholder="e.g., Wedding Album, Summer Holiday 2026..." style="font-size: 14px; font-weight: 600;">
+        </div>
+
+        <!-- 2. Save Destination & Filename -->
+        <div class="form-group">
+          <label class="form-label" for="inputNewProjectSavePath">Save Destination & Project File</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="inputNewProjectSavePath" value="Wedding_Album.smartease.json" placeholder="e.g., Wedding_Album.smartease.json" style="flex: 1; font-family: monospace; font-size: 12px;">
+            <button type="button" class="btn-pill" id="btnBrowseNewProjectSave" title="Choose destination folder and file" style="white-space: nowrap; padding: 0 14px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Browse...</span>
+            </button>
+          </div>
+          <div class="form-hint" id="newProjectSaveHint" style="font-size: 11px; color: var(--text-muted); margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+            <span>Project file will be saved and linked directly to this location.</span>
+          </div>
+        </div>
+
+        <!-- 3. Folder with Images -->
+        <div class="form-group" style="background: rgba(255, 255, 255, 0.03); border: 1.5px dashed rgba(56, 189, 248, 0.4); border-radius: var(--radius-sm); padding: 12px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label class="form-label" style="margin-bottom: 0; display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fff;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-primary);">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Folder with Images</span>
+            </label>
+            <span id="labelNewProjectFolderBadge" style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Optional (Can also import later)</span>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" class="form-input" id="inputNewProjectFolderPath" placeholder="Click 'Choose Folder' or select image directory..." readonly style="flex: 1; font-size: 12px; background: rgba(0, 0, 0, 0.3); cursor: pointer;">
+            <button type="button" class="btn-pill primary" id="btnChooseProjectFolder" style="white-space: nowrap; padding: 0 16px; height: 36px; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Choose Folder...</span>
+            </button>
+            <input type="file" id="inputNewProjectFolderHidden" webkitdirectory directory multiple style="display: none;">
+            <input type="file" id="inputNewProjectFilesHidden" multiple accept="image/*,.jpg,.jpeg,.png,.webp,.avif,.bmp,.tif,.tiff,.gif,.heic" style="display: none;">
+          </div>
+
+          <!-- Mini preview strip for selected folder images -->
+          <div id="newProjectFolderPreviewStrip" style="display: none; margin-top: 10px; gap: 6px; overflow-x: auto; padding: 4px 0;">
+            <!-- Thumbnails inserted dynamically -->
+          </div>
+
+          <!-- Auto-distribute checkbox -->
+          <label id="containerAutoDistribute" style="display: none; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; font-size: 12px; color: var(--text-main);">
+            <input type="checkbox" id="chkAutoDistributePhotos" checked style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
+            <span>✨ Automatically arrange folder photos across spreads using smart layouts</span>
+          </label>
+        </div>
+
+        <!-- 4. Album Size & Dimensions -->
+        <div class="form-group">
+          <label class="form-label" for="selectNewProjectSize">Album Size & Dimensions</label>
+          <select class="form-select" id="selectNewProjectSize" style="font-size: 13px;">
+            <optgroup label="Square Album Formats (Recommended for Layflat Albums)">
+              <option value="12x12" selected>12 × 12" Square Album (Spread: 24 × 12") — Luxury Wedding</option>
+              <option value="10x10">10 × 10" Square Album (Spread: 20 × 10") — Classic Portrait</option>
+              <option value="8x8">8 × 8" Square Album (Spread: 16 × 8") — Compact Keepsake</option>
+            </optgroup>
+            <optgroup label="Standard Landscape & Luxury Formats">
+              <option value="12x16">12 × 16" A3 (Landscape Spread: 32 × 12" • Portrait Spread: 24 × 16")</option>
+              <option value="8x12">8 × 12" A4 (Landscape Spread: 24 × 8" • Portrait Spread: 16 × 12")</option>
+              <option value="11x14">11 × 14" Luxury (Landscape Spread: 28 × 11" • Portrait Spread: 22 × 14")</option>
+              <option value="12x18">12 × 18" (Landscape Spread: 36 × 12" • Portrait Spread: 24 × 18")</option>
+              <option value="8x10">8 × 10" Standard (Landscape Spread: 20 × 8" • Portrait Spread: 16 × 10")</option>
+              <option value="5x7">5 × 7" Compact (Landscape Spread: 14 × 5" • Portrait Spread: 10 × 7")</option>
+              <option value="6x8">6 × 8" A5 (Landscape Spread: 16 × 6" • Portrait Spread: 12 × 8")</option>
+              <option value="4x6">4 × 6" Pocket (Landscape Spread: 12 × 4" • Portrait Spread: 8 × 6")</option>
+              <option value="10x12">10 × 12" (Landscape Spread: 24 × 10" • Portrait Spread: 20 × 12")</option>
+              <option value="10x15">10 × 15" (Landscape Spread: 30 × 10" • Portrait Spread: 20 × 15")</option>
+            </optgroup>
+            <optgroup label="Large Studio & Poster Formats">
+              <option value="16x20">16 × 20" A2 (Landscape Spread: 40 × 16" • Portrait Spread: 32 × 20")</option>
+              <option value="16x24">16 × 24" (Landscape Spread: 48 × 16" • Portrait Spread: 32 × 24")</option>
+              <option value="20x24">20 × 24" A1 (Landscape Spread: 48 × 20" • Portrait Spread: 40 × 24")</option>
+              <option value="20x30">20 × 30" (Landscape Spread: 60 × 20" • Portrait Spread: 40 × 30")</option>
+              <option value="24x36">24 × 36" (Landscape Spread: 72 × 24" • Portrait Spread: 48 × 36")</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 4. Initial Spreads Count -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="margin-bottom: 0;">Spreads to be Generated</label>
+            <span id="labelNewProjectSpreadsInfo" style="font-size: 11px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 8px; border-radius: 10px;">10 Spreads (20 Pages)</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div class="stepper-controls-group" style="display: inline-flex; align-items: center; gap: 3px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 3px 5px;">
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnSpreadCountMinus10" title="Reduce by 10 Spreads (-10)" style="padding: 4px 8px; font-weight: 800; font-size: 11px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">-10</button>
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnSpreadCountMinus1" title="Reduce by 1 Spread (-1)" style="padding: 4px 9px; font-weight: 800; font-size: 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">-1</button>
+              <input type="number" class="form-input" id="inputNewProjectSpreadCount" value="10" min="1" max="100" style="width: 55px; text-align: center; font-weight: 800; font-size: 14px; border: none; background: transparent; padding: 2px; color: #38bdf8;">
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnSpreadCountPlus1" title="Add 1 Spread (+1)" style="padding: 4px 9px; font-weight: 800; font-size: 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">+1</button>
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnSpreadCountPlus10" title="Add 10 Spreads (+10)" style="padding: 4px 8px; font-weight: 800; font-size: 11px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">+10</button>
+            </div>
+            <div class="spreads-preset-bar" style="display: flex; gap: 6px; flex: 1;">
+              <button type="button" class="btn-pill btn-spread-preset" data-count="5">5</button>
+              <button type="button" class="btn-pill btn-spread-preset active" data-count="10">10</button>
+              <button type="button" class="btn-pill btn-spread-preset" data-count="15">15</button>
+              <button type="button" class="btn-pill btn-spread-preset" data-count="20">20</button>
+              <button type="button" class="btn-pill btn-spread-preset" data-count="30">30</button>
+              <button type="button" class="btn-pill btn-spread-preset" data-count="50">50</button>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">
+            Use &plusmn;1 or &plusmn;10 to quickly adjust spread count. You can also add or remove spreads dynamically at any time.
+          </div>
+        </div>
+
+        <!-- 5. Page / Spread Mode -->
+        <div class="form-group">
+          <label class="form-label">Page / Spread Mode</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label class="new-project-mode-card active" id="cardModeSpread">
+              <input type="radio" name="newProjectPageMode" value="spread" checked style="display: none;">
+              <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: #fff;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="18" rx="2"></rect>
+                  <line x1="12" y1="3" x2="12" y2="21"></line>
+                </svg>
+                <span>Double Spread</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3;">
+                Seamless layflat panoramic spread across 2 facing pages.
+              </div>
+            </label>
+
+            <label class="new-project-mode-card" id="cardModeSingle">
+              <input type="radio" name="newProjectPageMode" value="single" style="display: none;">
+              <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: #fff;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                </svg>
+                <span>Single Page</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3;">
+                Individual independent page layouts.
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn-pill" id="btnCancelNewProject">Cancel</button>
+        <button class="btn-pill primary" id="btnConfirmCreateProject" style="height: 38px; padding: 0 24px; font-weight: 700; font-size: 13px; background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%); box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45); display: flex; align-items: center; gap: 7px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Create Project Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Auto-Build Modal ==================== -->
+  <div class="modal-backdrop" id="modalAutoBuild">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title">⚡ Auto-Build Photobook</div>
+        <button class="btn-icon" id="btnCloseAutoBuild">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+          Smart Ease will automatically curate your photos across spreads, pairing portraits with tall rectangles and landscapes with wide rectangles across 200 realistic photobook layouts!
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Photos to Include</label>
+          <select class="form-select" id="autoBuildPhotoScope">
+            <option value="all" selected>All Photos in Media Pool</option>
+            <option value="selected">Only Currently Selected Photos</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Spread Distribution Mode</label>
+          <select class="form-select" id="autoBuildSpreadMode">
+            <option value="auto_density" selected>Auto-calculate spreads from photo density (Recommended: 3-5 photos/spread)</option>
+            <option value="current_spreads">Fit all photos into current project spreads</option>
+            <option value="custom_spreads">Custom Exact Spreads Count (e.g., 15 or 20 spreads)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="containerAutoBuildTargetSpreads" style="display: none;">
+          <label class="form-label">Target Spreads Count</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="stepper-controls-group" style="display: inline-flex; align-items: center; gap: 3px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 3px 5px;">
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnAutoBuildMinus10" title="Reduce by 10 Spreads (-10)" style="padding: 4px 8px; font-weight: 800; font-size: 11px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">-10</button>
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnAutoBuildMinus1" title="Reduce by 1 Spread (-1)" style="padding: 4px 9px; font-weight: 800; font-size: 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">-1</button>
+              <input type="number" class="form-input" id="autoBuildTargetSpreadCount" value="20" min="1" max="100" style="width: 55px; text-align: center; font-weight: 800; font-size: 14px; border: none; background: transparent; padding: 2px; color: #38bdf8;">
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnAutoBuildPlus1" title="Add 1 Spread (+1)" style="padding: 4px 9px; font-weight: 800; font-size: 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">+1</button>
+              <button type="button" class="btn-pill-sm stepper-btn" id="btnAutoBuildPlus10" title="Add 10 Spreads (+10)" style="padding: 4px 8px; font-weight: 800; font-size: 11px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); border-radius: 4px; cursor: pointer;">+10</button>
+            </div>
+          </div>
+          <div class="form-hint" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Smart Ease will distribute all photos across exactly this number of spreads using dynamic storytelling layouts.</div>
+        </div>
+
+        <div class="form-group" id="containerAutoBuildDensitySettings" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label class="form-label">Min Photos / Spread</label>
+              <select class="form-select" id="autoBuildMinPhotos">
+                <option value="1">1 (Include full hero pages)</option>
+                <option value="2" selected>2 (Balanced)</option>
+                <option value="3">3 Photos</option>
+                <option value="4">4 Photos</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Max Photos / Spread</label>
+              <select class="form-select" id="autoBuildMaxPhotos">
+                <option value="4">4 Photos (Spacious)</option>
+                <option value="6">6 Photos (Classic)</option>
+                <option value="8" selected>8 Photos (Recommended)</option>
+                <option value="10">10 Photos (Story Density)</option>
+                <option value="12">12 Photos (High Density)</option>
+                <option value="16">16 Photos (Mosaic Grid)</option>
+                <option value="20">20 Photos (Max Collage)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: var(--accent-primary); display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(56, 189, 248, 0.08); border-radius: var(--radius-sm); border: 1px solid rgba(56, 189, 248, 0.2);">
+          <span>✨ Automatic Orientation Matching & Multi-Image Grids: Enabled (Up to 24 photos per spread)</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill" id="btnCancelAutoBuild">Cancel</button>
+        <button class="btn-pill primary" id="btnRunAutoBuild">Generate Photobook</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Export Modal ==================== -->
+  <div class="modal-backdrop" id="modalExport">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title">Export Photobook for Print Lab</div>
+        <button class="btn-icon" id="btnCloseExport">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Export Scope Selection (Export All, Current Page, Selected Section) -->
+        <div class="form-group">
+          <label class="form-label">Export Scope / Pages</label>
+          <div class="export-scope-btn-group" style="display: flex; gap: 8px; margin-bottom: 6px;">
+            <button type="button" class="btn-pill export-scope-btn active" id="btnScopeAll" data-scope="all" style="flex: 1; justify-content: center; font-size: 12px; padding: 7px 10px;">
+              <span>🌐 Export All</span>
+            </button>
+            <button type="button" class="btn-pill export-scope-btn" id="btnScopeCurrent" data-scope="current" style="flex: 1; justify-content: center; font-size: 12px; padding: 7px 10px;">
+              <span>📄 Current Spread</span>
+            </button>
+            <button type="button" class="btn-pill export-scope-btn" id="btnScopeSelected" data-scope="selected" style="flex: 1; justify-content: center; font-size: 12px; padding: 7px 10px;">
+              <span>📑 Selected Section</span>
+            </button>
+          </div>
+          <div id="exportScopeSummaryText" style="font-size: 11px; color: var(--accent-primary); padding: 4px 2px; font-weight: 600;">
+            Exporting all spreads (Complete Album)
+          </div>
+          <div id="exportCustomRangeWrapper" style="display: none; margin-top: 6px;">
+            <label class="form-label" style="font-size: 11px;">Custom Spread Numbers / Range:</label>
+            <input type="text" class="form-input" id="exportCustomRangeInput" placeholder="e.g. 1-3, 5" style="font-size: 12px; padding: 6px 10px;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Export Format</label>
+          <select class="form-select" id="exportFormatSelect">
+            <option value="pdf" selected>Multi-Page Print-Ready PDF Document</option>
+            <option value="jpegs">High-Res Spread JPEGs (300 DPI Lab Print)</option>
+            <option value="pngs">Lossless High-Res PNG Spreads</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Page / Sheet Layout</label>
+          <select class="form-select" id="exportLayoutModeSelect">
+            <option value="sheet" selected>Full Sheets (Double Spreads Side by Side)</option>
+            <option value="single">Single Pages (Split Each Spread Down the Middle)</option>
+          </select>
+        </div>
+
+        <!-- Single Page PDF Outer Margin / Slug Option (Sample Style Replication) -->
+        <div class="form-group" id="exportSinglePageMarginGroup" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <input type="checkbox" id="chkPdfPageLabels" checked style="accent-color: var(--accent-primary); width: 17px; height: 17px; margin-top: 2px; cursor: pointer;">
+            <div style="flex: 1;">
+              <label for="chkPdfPageLabels" style="font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; user-select: none; display: block; margin-bottom: 4px;">
+                Add Page Number & Project Name (+0.5" binding margin)
+              </label>
+              <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+                Adjusts each page with an extra 0.5-inch margin slug shifted right to avoid binding cuts, displaying bold vertical page number and project name in black, followed by <span style="color: #ef4444; font-weight: 600;">Designed with Smart Ease Album Studio</span> in red.
+              </div>
+              <div id="exportPdfProjectNameWrapper" style="display: flex; gap: 8px; align-items: center;">
+                <label for="exportPdfProjectName" style="font-size: 11px; color: var(--text-secondary); white-space: nowrap;">Label Text:</label>
+                <input type="text" class="form-input" id="exportPdfProjectName" placeholder="Project Name" style="font-size: 11px; padding: 4px 8px; height: 26px; flex: 1;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Print Quality & Resolution</label>
+          <select class="form-select" id="exportDpiSelect">
+            <option value="300" selected>300 DPI - Pro Lab Print Specification (Recommended)</option>
+            <option value="200">200 DPI - High Quality</option>
+            <option value="150">150 DPI - Client Proofing / Web Preview</option>
+          </select>
+        </div>
+
+        <!-- Destination Folder & Subfolder Option -->
+        <div class="form-group" style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px;">
+          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span>Save Location / Destination Folder</span>
+            <span id="exportDirStatusBadge" style="font-size: 11px; color: #10b981; font-weight: 600;"></span>
+          </label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" class="form-input" id="exportDestinationPath" placeholder="Default: Browser Downloads (Click Browse to select folder)" readonly style="font-size: 12px; padding: 7px 10px; flex: 1; background: rgba(0,0,0,0.3); color: #e2e8f0; cursor: pointer;">
+            <button type="button" class="btn-pill" id="btnBrowseExportDir" style="height: 32px; padding: 0 12px; font-size: 11px; white-space: nowrap; border-color: var(--accent-primary); color: var(--accent-primary);">
+              📁 Browse Folder...
+            </button>
+          </div>
+          <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chkExportCreateFolder" checked style="accent-color: var(--accent-primary); width: 16px; height: 16px; cursor: pointer;">
+            <label for="chkExportCreateFolder" style="font-size: 12px; color: var(--text-primary); cursor: pointer; user-select: none;">
+              Create a dedicated subfolder on export: <code id="exportSubfolderNamePreview" style="color: var(--accent-primary); font-size: 11px; background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 3px;">[Album_Name]_Exports</code>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-primary);">Target Print Dimensions</span>
+            <span id="exportSpreadDimensionsBadge" style="font-size: 12px; font-weight: 700; color: #fff;">32.0 × 12.0"</span>
+          </div>
+          <div id="exportResolutionDetail" style="font-size: 11px; color: var(--text-muted);">9,600 × 3,600 px per spread @ 300 DPI</div>
+        </div>
+
+        <div class="progress-container" id="exportProgressBox" style="display: none;">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="exportProgressBar"></div>
+          </div>
+          <div class="progress-status" id="exportProgressStatus">Preparing spreads...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill" id="btnCancelExport">Close</button>
+        <button class="btn-pill primary" id="btnStartExport">Start Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tutorials & Quick Guide Modal ==================== -->
+  <div class="modal-backdrop" id="modalTutorials">
+    <div class="modal-window" style="max-width: 620px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: var(--accent-primary);">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          Smart Ease Tutorials & Quick Guide
+        </div>
+        <button class="btn-icon" id="btnCloseTutorials">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: 60vh; overflow-y: auto;">
+        
+        <div class="tutorial-card">
+          <div class="tutorial-card-title">📖 1. Designing Spreads & Drag & Drop</div>
+          <div class="tutorial-card-desc">Drag photos directly from the bottom photo tray onto the spread. Smart Ease will automatically choose the best matching layout from 200 realistic templates based on photo orientation!</div>
+        </div>
+
+        <div class="tutorial-card">
+          <div class="tutorial-card-title">📐 2. Resizing Boxes Independently (Aspect Ratio Locked)</div>
+          <div class="tutorial-card-desc">Touch or click any frame on the spread to select it. Drag any of the 4 circular corner handles to resize that box independently—the aspect ratio is strictly preserved with zero distortion!</div>
+        </div>
+
+        <div class="tutorial-card">
+          <div class="tutorial-card-title">🎨 3. Right-Side Photo Inspector (Adjustments & Mirror)</div>
+          <div class="tutorial-card-desc">Clicking any photo opens the Right Inspector with high-res large preview, Flip Horizontally (Mirror), Flip Vertically, Crop/Framing (Fill vs Fit), Light & Color sliders (Brightness, Contrast, Warmth), and instant Black & White (Saturation 0%).</div>
+        </div>
+
+        <div class="tutorial-card">
+          <div class="tutorial-card-title">⚡ 4. Keyboard Shortcuts Reference</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px;">
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Touch Overlap / Click</td><td style="color: var(--text-muted);">Cycle between Front & Back overlapping frames</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">H</td><td style="color: var(--text-muted);">Switch selected frame(s) Left ↔ Right page / Mirror spread</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">R</td><td style="color: var(--text-muted);">Vary Rectangles (photo order strictly maintained)</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Ctrl + ] / Ctrl + [</td><td style="color: var(--text-muted);">Bring Layer Forward / Send Backward (+Shift: Front/Back)</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Arrow Keys (↑ ↓ ← →)</td><td style="color: var(--text-muted);">Nudge selected frame(s) (Hold Shift for 10px moves)</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Shift / Ctrl + Click</td><td style="color: var(--text-muted);">Multi-select spreads in timeline or photos in tray</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Home / End</td><td style="color: var(--text-muted);">Jump to First / Last Spread in Timeline</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Ctrl + C / Ctrl + V</td><td style="color: var(--text-muted);">Copy & Paste Selected Frame(s) or Photo(s)</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Ctrl + J</td><td style="color: var(--text-muted);">Duplicate Selected Frame / Picture (Copy & Paste)</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Space / Shift + Space</td><td style="color: var(--text-muted);">Next / Previous Layout</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);"><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Ctrl + S</td><td style="color: var(--text-muted);">Save Project</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: 700; color: var(--accent-primary);">Ctrl + Z / Ctrl + Y</td><td style="color: var(--text-muted);">Undo / Redo</td></tr>
+          </table>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill primary" id="btnOkTutorials">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Activation Modal ==================== -->
+  <div class="modal-backdrop" id="modalActivate">
+    <div class="modal-window" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: #f59e0b;">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+          </svg>
+          Smart Ease Activation
+        </div>
+        <button class="btn-icon" id="btnCloseActivate">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-size: 13px; color: var(--text-main); line-height: 1.5;">
+          Enter your license key to activate the full pro features of Smart Ease (unlimited offline exports, full 300 DPI lab print support).
+        </div>
+        <div class="form-group">
+          <label class="form-label">License Key</label>
+          <input type="text" class="form-select" id="activateKeyInput" placeholder="SE-XXXX-XXXX-XXXX-PRO" value="SE-PRO-LIFETIME-OFFLINE" style="font-family: monospace; font-size: 13px;">
+        </div>
+        <div id="activateStatusBadge" style="padding: 8px 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 6px; font-size: 12px; color: #10b981; display: flex; align-items: center; gap: 6px;">
+          <span>✓</span> Smart Ease Pro Lifetime Offline License is Active
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill" id="btnCancelActivate">Close</button>
+        <button class="btn-pill primary" id="btnSubmitActivate">Activate License</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Settings Modal ==================== -->
+  <div class="modal-backdrop" id="modalSettings">
+    <div class="modal-window" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: var(--accent-primary);">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Smart Ease Application Settings
+        </div>
+        <button class="btn-icon" id="btnCloseSettings">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group">
+          <label class="form-label">Auto-Save Frequency</label>
+          <select class="form-select" id="settingAutoSave">
+            <option value="1">Every 1 minute (Recommended)</option>
+            <option value="5" selected>Every 5 minutes</option>
+            <option value="off">Disabled (Manual Save Ctrl+S only)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Default Export Quality</label>
+          <select class="form-select" id="settingDefaultDpi">
+            <option value="300" selected>300 DPI - Pro Lab Print Spec</option>
+            <option value="200">200 DPI - High Quality</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hardware Acceleration</label>
+          <select class="form-select" id="settingHardwareAccel">
+            <option value="on" selected>Enabled (High Performance 60 FPS)</option>
+            <option value="off">Standard</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill primary" id="btnSaveSettings">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Subscription Modal ==================== -->
+  <div class="modal-backdrop" id="modalSubscription">
+    <div class="modal-window" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: #10b981;">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          Subscription & License Plan
+        </div>
+        <button class="btn-icon" id="btnCloseSubscription">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 15px; font-weight: 700; color: #10b981;">Smart Ease Studio Pro</span>
+            <span class="profile-badge-active" style="font-size: 11px; padding: 3px 8px;">Active Lifetime</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">
+            Unlimited high-resolution offline PDF/JPEG export, <span class="real-template-total">384</span>+ pro photobook layouts, local hardware acceleration, and full offline studio workflow.
+          </p>
+        </div>
+        <div style="font-size: 12px; color: var(--text-dim);">
+          • Device ID: <span style="font-family: monospace; color: var(--text-main);">SE-WIN-PC-892147</span><br>
+          • Status: Valid & Unlimited Offline Access
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill primary" id="btnOkSubscription">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Login / Account Modal ==================== -->
+  <div class="modal-backdrop" id="modalLogin">
+    <div class="modal-window" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: var(--accent-primary);">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Smart Ease Account
+        </div>
+        <button class="btn-icon" id="btnCloseLogin">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Studio Email / Username</label>
+          <input type="email" class="form-select" id="loginEmailInput" value="studio.pro@smartease.app">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-select" id="loginPasswordInput" value="••••••••••••">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill" id="btnCancelLogin">Cancel</button>
+        <button class="btn-pill primary" id="btnSubmitLogin">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== About Us Modal ==================== -->
+  <div class="modal-backdrop" id="modalAboutUs">
+    <div class="modal-window" style="max-width: 480px; text-align: center;">
+      <div class="modal-header" style="justify-content: flex-end;">
+        <button class="btn-icon" id="btnCloseAboutUs">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 10px 20px 20px;">
+        <img src="logo/Smart Ease Logo.jpg" alt="Smart Ease Logo" style="height: 52px; object-fit: contain; background: #fff; padding: 4px 12px; border-radius: 8px; box-shadow: var(--shadow-md);">
+        <div style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-top: 4px;">Smart Ease</div>
+        <div style="font-size: 12px; font-weight: 600; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px;">Smart Photobook Designer v2.4 Pro</div>
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 6px 0;">
+          The pro-grade offline photobook software crafted for professional wedding & studio photographers. Featuring <span class="real-template-total">384</span>+ realistic templates, automatic photo orientation pairing, drag & drop spreads, custom corner resizing, and print lab export.
+        </p>
+        <div style="font-size: 11px; color: var(--text-dim);">
+          Developed with ❤️ by the Smart Ease Team.
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: center;">
+        <button class="btn-pill primary" id="btnOkAboutUs">Awesome</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Save As New Template Modal ==================== -->
+  <div class="modal-backdrop" id="modalSaveNewTemplate">
+    <div class="modal-window" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: #38bdf8;">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          </svg>
+          Save Layout as New Template
+        </div>
+        <button class="btn-icon" id="btnCloseSaveNewTemplate">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group">
+          <label class="form-label">Template Name</label>
+          <input type="text" class="form-input" id="inputSaveTemplateName" placeholder="e.g. My Wedding Hero Spread" value="" style="width: 100%;">
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); padding: 10px; border-radius: var(--radius-sm);">
+          <div id="saveTemplatePreviewCanvasBox" style="width: 110px; height: 55px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 4px; position: relative; overflow: hidden; flex-shrink: 0;">
+            <!-- Live thumbnail preview of rects injected here -->
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+            <div><strong>Frames:</strong> <span id="saveTemplateFrameCountLabel" style="color: #38bdf8; font-weight: 700;">3 Photos</span></div>
+            <div style="margin-top: 3px; font-size: 11px; color: var(--text-dim);">Template will be saved to your custom layout library and available instantly across all spreads and projects.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-pill" id="btnCancelSaveNewTemplate">Cancel</button>
+        <button class="btn-pill primary" id="btnConfirmSaveNewTemplate">Save Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Manage Custom Templates Modal ==================== -->
+  <div class="modal-backdrop" id="modalManageCustomTemplates">
+    <div class="modal-window" style="max-width: 580px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px; color: #38bdf8;">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Custom Templates Manager
+        </div>
+        <button class="btn-icon" id="btnCloseManageCustomTemplates">&times;</button>
+      </div>
+      <div class="modal-body" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; max-height: 55vh;">
+        <!-- Load External Templates from File Bar -->
+        <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(56, 189, 248, 0.08); border: 1.5px dashed rgba(56, 189, 248, 0.4); border-radius: var(--radius-sm);">
+          <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 12px; font-weight: 700; color: #fff;">Load External Template (JPEG, PNG, etc.)</span>
+            <span style="font-size: 11px; color: var(--text-muted);">App automatically detects photo frames & converts images into usable spread templates offline</span>
+          </div>
+          <button type="button" class="btn-pill primary" id="btnLoadTemplateImage" style="white-space: nowrap; font-size: 11px; font-weight: 700; padding: 0 14px; height: 32px; display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7, #2563eb);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Load Template File...</span>
+          </button>
+          <input type="file" id="inputLoadTemplateImage" accept="image/jpeg,image/png,image/webp,image/jpg,.json" multiple style="display: none;">
+        </div>
+
+        <!-- List of custom templates rendered dynamically -->
+        <div id="manageCustomTemplatesList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <span style="font-size: 11px; color: var(--text-dim);" id="manageTemplatesSummaryLabel">0 custom templates</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="btn-pill" id="btnOpenBigViewFromManager" style="font-size: 11px; padding: 4px 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">⛶ Browse All Templates</button>
+          <button class="btn-pill primary" id="btnDoneManageCustomTemplates">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Big View Template Library Modal ==================== -->
+  <div class="modal-backdrop" id="modalBrowseAllTemplates">
+    <div class="modal-window big-view-modal-window">
+      <div class="big-view-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #38bdf8;">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <div>
+            <div style="font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <span>Complete Template Library</span>
+              <span id="lblBigViewRealTotal" style="font-size: 11px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 2px 8px;">384 Templates</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
+              Browse, search, edit, or delete any layout in your collection — even when not designing.
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-pill-sm" id="btnBigViewSelectAll" title="Select All Templates (Ctrl+A)" style="font-size: 11px; padding: 4px 10px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+            ☑️ Select All (Ctrl+A)
+          </button>
+          <button type="button" class="btn-pill-sm" id="btnBigViewDeselectAll" title="Deselect All Templates (Esc / Ctrl+D)" style="font-size: 11px; padding: 4px 10px; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.15);">
+            Deselect (Esc)
+          </button>
+          <button type="button" class="btn-pill-sm" id="btnBigViewDeleteSelected" title="Delete All Selected Templates (Del / Backspace)" style="font-size: 11px; padding: 4px 10px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); opacity: 0.5;" disabled>
+            🗑️ Delete Selected <span id="lblBigViewSelectedCount" style="display: none; background: #ef4444; color: #fff; border-radius: 10px; padding: 1px 6px; margin-left: 4px; font-weight: 700;">0</span>
+          </button>
+          <button type="button" class="btn-pill" id="btnBigViewOpenManager" style="font-size: 11px; padding: 4px 12px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+            ➕ Import New Layout...
+          </button>
+          <button class="btn-icon" id="btnCloseBrowseAllTemplates">&times;</button>
+        </div>
+      </div>
+
+      <div class="big-view-toolbar">
+        <div class="big-view-filter-pills" id="bigViewFilterPills">
+          <button type="button" class="big-view-pill active" data-filter="all">All (<span class="real-template-total">384</span>)</button>
+          <button type="button" class="big-view-pill" data-filter="1">1 Photo</button>
+          <button type="button" class="big-view-pill" data-filter="2">2 Photos</button>
+          <button type="button" class="big-view-pill" data-filter="3">3 Photos</button>
+          <button type="button" class="big-view-pill" data-filter="4">4 Photos</button>
+          <button type="button" class="big-view-pill" data-filter="5">5 Photos</button>
+          <button type="button" class="big-view-pill" data-filter="6">6 Photos</button>
+          <button type="button" class="big-view-pill" data-filter="7plus">7+ Photos</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select id="selectBigViewOrientation" class="form-input" style="width: auto; height: 32px; font-size: 11px; padding: 0 8px; background: rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.12); color: #fff;">
+            <option value="all">All Shapes & Orientations</option>
+            <option value="wide">Wide / Landscape</option>
+            <option value="tall">Tall / Portrait</option>
+            <option value="shapes">Artistic / Shapes (Circles, Arch, etc.)</option>
+          </select>
+          <input type="text" id="inputBigViewSearch" class="form-input" placeholder="Search templates..." style="width: 200px; height: 32px; font-size: 11px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.12); color: #fff;">
+        </div>
+      </div>
+
+      <div class="big-view-body" style="position: relative;">
+        <div id="bigViewMarquee" class="big-view-marquee"></div>
+        <div class="big-view-templates-grid" id="bigViewTemplatesGrid">
+          <!-- Dynamic cards -->
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between; padding: 10px 20px; background: rgba(15, 23, 42, 0.7); border-top: 1px solid rgba(255, 255, 255, 0.06); flex-shrink: 0;">
+        <span style="font-size: 11px; color: var(--text-dim);" id="lblBigViewFooterStatus">Showing 384 templates</span>
+        <button class="btn-pill primary" id="btnDoneBrowseAllTemplates">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Convert External Template Modal ==================== -->
+  <div class="modal-backdrop" id="modalConvertTemplatePreview">
+    <div class="modal-window convert-template-modal-window">
+      <div class="modal-header" style="align-items: center; justify-content: space-between;">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #38bdf8;">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span style="font-weight: 700;">Template Designer & Converter</span>
+        </div>
+
+        <!-- Batch Navigation Indicator (Visible when multiple template images loaded) -->
+        <div id="convertBatchNav" style="display: none; align-items: center; gap: 8px;">
+          <button type="button" class="btn-pill-sm" id="btnBatchPrev" title="Previous Template in Batch" style="padding: 2px 8px;">◀ Prev</button>
+          <span id="lblBatchProgress" class="batch-nav-pill" style="color: #38bdf8; font-weight: 700;">Template 1 of 1</span>
+          <button type="button" class="btn-pill-sm" id="btnBatchNext" title="Next Template in Batch" style="padding: 2px 8px;">Next ▶</button>
+        </div>
+
+        <button class="btn-icon" id="btnCloseConvertTemplate">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px; padding: 16px 20px;">
+        <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+          <div class="form-group" style="flex: 1; min-width: 220px; margin-bottom: 0;">
+            <label class="form-label" style="margin-bottom: 4px;">Template Name</label>
+            <input type="text" class="form-input" id="inputConvertedTemplateName" value="" placeholder="e.g., Wedding 3-Photo Hero Spread">
+          </div>
+          <!-- Multi-Selection & Frame Actions Toolbar -->
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-pill-sm" id="btnConvertSelectAll" title="Select All Frames (Ctrl+A)" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+              ☑️ Select All (Ctrl+A)
+            </button>
+            <button type="button" class="btn-pill-sm" id="btnConvertDeselectAll" title="Deselect All Frames (Esc / Ctrl+D)" style="background: rgba(255, 255, 255, 0.08); color: var(--text-muted);">
+              Deselect (Esc)
+            </button>
+            <button type="button" class="btn-pill-sm" id="btnConvertDuplicateSelected" title="Duplicate Selected Frames (Ctrl+J)" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.4);">
+              📋 Duplicate (Ctrl+J)
+            </button>
+            <button type="button" class="btn-pill-sm" id="btnConvertDeleteSelected" title="Delete Selected Frames (Del / Backspace)" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.4);">
+              🗑️ Delete (Del)
+            </button>
+            <button type="button" class="btn-pill-sm" id="btnConvertClearFrames" title="Clear all frames so you can draw your own cleanly" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.25);">
+              Clear All
+            </button>
+            <button type="button" class="btn-pill-sm" id="btnConvertRedetectFrames" title="Re-run automatic offline frame detection" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">
+              🎯 Auto Re-Detect
+            </button>
+          </div>
+        </div>
+
+        <!-- High-Contrast Interactive Template Canvas Stage -->
+        <div style="background: #06090e; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: var(--radius-sm); padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div id="convertTemplatePreviewContainer" style="width: 100%; display: flex; align-items: center; justify-content: center; min-height: 220px; max-height: 480px; position: relative;">
+            <div id="convertTemplateStageWrapper" class="convert-stage-wrapper">
+              <img id="convertTemplateSourceImg" class="convert-stage-img" src="" alt="Template Source">
+              <!-- Equal Spread Middle Crease Line -->
+              <div id="convertTemplateSpineLine" class="convert-stage-spine-line" title="Spread Center Line (50% Middle)">
+                <span class="convert-stage-spine-label">CENTER 50%</span>
+              </div>
+              <div id="convertTemplateBoxesOverlay" class="convert-stage-overlay" title="Click and drag to draw or marquee select"></div>
+              <!-- Rubber-band Marquee Selection Box -->
+              <div id="convertTemplateMarquee" class="convert-stage-marquee"></div>
+              <!-- Dynamic Snap Alignment Smart Guides (Photoshop-like) -->
+              <div id="convertTemplateSmartGuides" class="convert-stage-smart-guides"></div>
+              <div id="convertTemplateGhostBox" class="convert-ghost-box"></div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span id="convertTemplateStatusBadge" style="font-size: 11px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 4px; padding: 3px 8px;">
+              ✓ Detected Photo Frames
+            </span>
+            <span style="font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px;">
+              ✏️ <span><b>Shift/Ctrl + Click</b> to multi-select • <b>Drag on canvas</b> to marquee select • <b>Shift + Drag</b> axis lock • <b>Ctrl+J</b> duplicate</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Multi-Selection Alignment & Adjustment Bar -->
+        <div id="convertMultiAdjustBar" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 6px 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); margin-bottom: 2px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: #38bdf8;" id="lblSelectedBoxesCount">0 Selected</span>
+            <span style="font-size: 10px; color: var(--text-dim);">• Multi-adjustment</span>
+          </div>
+          <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-pill-sm" id="btnConvertAlignLeft" title="Align Left Edges" style="padding: 2px 7px;">⇤ Left</button>
+            <button type="button" class="btn-pill-sm" id="btnConvertAlignCenterH" title="Align Centers Horizontally" style="padding: 2px 7px;">⇥⇤ Center</button>
+            <button type="button" class="btn-pill-sm" id="btnConvertAlignRight" title="Align Right Edges" style="padding: 2px 7px;">⇥ Right</button>
+            <span style="color: rgba(255,255,255,0.2);">|</span>
+            <button type="button" class="btn-pill-sm" id="btnConvertAlignTop" title="Align Top Edges" style="padding: 2px 7px;">⤒ Top</button>
+            <button type="button" class="btn-pill-sm" id="btnConvertAlignMiddleV" title="Align Centers Vertically" style="padding: 2px 7px;">↕ Middle</button>
+            <button type="button" class="btn-pill-sm" id="btnConvertAlignBottom" title="Align Bottom Edges" style="padding: 2px 7px;">⤓ Bottom</button>
+            <span style="color: rgba(255,255,255,0.2);">|</span>
+            <button type="button" class="btn-pill-sm" id="btnDistributeH" title="Distribute Horizontally with Equal Spacing" style="padding: 2px 7px;">⇎ Equal H</button>
+            <button type="button" class="btn-pill-sm" id="btnDistributeV" title="Distribute Vertically with Equal Spacing" style="padding: 2px 7px;">⇕ Equal V</button>
+            <span style="color: rgba(255,255,255,0.2);">|</span>
+            <button type="button" class="btn-pill-sm" id="btnMakeSameWidth" title="Make Same Width as First Selected" style="padding: 2px 7px;">↔ Same W</button>
+            <button type="button" class="btn-pill-sm" id="btnMakeSameHeight" title="Make Same Height as First Selected" style="padding: 2px 7px;">↕ Same H</button>
+          </div>
+        </div>
+
+        <!-- Frame Drawing Shape Selection Toolbar -->
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label" style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>Frame Shape (Draw & Convert)</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">Choose shape to draw or click frame to cycle shape</span>
+          </label>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="convertShapeSelector">
+            <button type="button" class="btn-pill-sm active" data-shape="rectangle" id="btnConvertShapeRect" style="border-color: #38bdf8; color: #38bdf8;">▭ Rectangle</button>
+            <button type="button" class="btn-pill-sm" data-shape="circle" id="btnConvertShapeCircle">◯ Circle / Oval</button>
+            <button type="button" class="btn-pill-sm" data-shape="arch" id="btnConvertShapeArch">⌓ Arch Dome</button>
+            <button type="button" class="btn-pill-sm" data-shape="diamond" id="btnConvertShapeDiamond">◇ Diamond</button>
+            <button type="button" class="btn-pill-sm" data-shape="brush" id="btnConvertShapeBrush">🖌️ Artistic Brush</button>
+            <button type="button" class="btn-pill-sm" data-shape="rounded" id="btnConvertShapeRounded">▢ Rounded</button>
+            <button type="button" class="btn-pill-sm" data-shape="skew" id="btnConvertShapeSkew">▱ Parallelogram</button>
+            <button type="button" class="btn-pill-sm" id="btnConvertAddText" style="border-color: #f59e0b; color: #f59e0b; font-weight: 700; background: rgba(245, 158, 11, 0.12);">🔤 Add Text Box</button>
+          </div>
+        </div>
+
+        <!-- Frame Layout Preset Options (Auto-detected or preset override) -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>Frame Layout Presets</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">Click any preset to override frame arrangement</span>
+          </label>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="convertPresetButtons">
+            <button type="button" class="btn-pill-sm active" data-preset="auto" id="btnPresetAutoDetect" style="border-color: #38bdf8; color: #38bdf8;">🎯 Auto-Detected (<span id="lblAutoCount">0</span>)</button>
+            <button type="button" class="btn-pill-sm" data-preset="1">1 Hero Frame</button>
+            <button type="button" class="btn-pill-sm" data-preset="2h">2 Left/Right</button>
+            <button type="button" class="btn-pill-sm" data-preset="3">3 Story</button>
+            <button type="button" class="btn-pill-sm" data-preset="4">4 Grid</button>
+            <button type="button" class="btn-pill-sm" data-preset="6">6 Gallery</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- Single Mode Action Buttons -->
+        <div id="convertSingleActions" style="display: flex; justify-content: space-between; width: 100%;">
+          <button class="btn-pill" id="btnCancelConvertTemplate">Cancel</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-pill" id="btnSaveTemplateOnly" style="background: rgba(255, 255, 255, 0.08);">Save to Library</button>
+            <button class="btn-pill primary" id="btnSaveAndApplyTemplate" style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);">Save & Apply to Spread</button>
+          </div>
+        </div>
+
+        <!-- Batch Mode Action Buttons -->
+        <div id="convertBatchActions" style="display: none; justify-content: space-between; width: 100%;">
+          <button class="btn-pill" id="btnCancelBatchConvert">Cancel Batch</button>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn-pill" id="btnBatchSkip" style="background: rgba(255, 255, 255, 0.06); font-size: 11px;">Skip This Template</button>
+            <button class="btn-pill" id="btnBatchConfirmNext" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 700;">
+              ✓ Confirm & Next Template
+            </button>
+            <button class="btn-pill primary" id="btnBatchConfirmAll" style="background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%); font-weight: 700;">
+              ✓ Confirm & Save All
+            </button>
+          </div>
+        </div>
+      </div>
+  <!-- ==================== Shape Combiner Dialog (SVG, Canvas, Python/Pillow, Cairo, JS) ==================== -->
+  <div class="modal-backdrop" id="modalShapeCombiner" style="display: none;">
+    <div class="modal-window shape-combiner-modal-window" style="max-width: 820px; width: 92vw; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding: 12px 18px;">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">⚡</span>
+          <div>
+            <div style="font-size: 14px; font-weight: 700; color: #f8fafc;">Combine &amp; Create Custom Shapes</div>
+            <div style="font-size: 11px; color: var(--text-dim); font-weight: normal;">Combine shapes or build custom vector frames via SVG, Canvas 2D, Python (Pillow), Cairo &amp; JavaScript</div>
+          </div>
+        </div>
+        <button class="modal-close" id="btnCloseShapeCombiner" title="Close Dialog">&times;</button>
+      </div>
+
+      <div class="modal-body shape-combiner-modal-body" style="padding: 16px 20px; overflow-y: auto; flex: 1;">
+        <!-- Two-column layout: Left is Controls & Tabs, Right is Live Preview Canvas -->
+        <div class="combiner-layout" style="display: grid; grid-template-columns: 1fr 270px; gap: 18px; align-items: start;">
+          <!-- Left Column: Source Format Tabs & Inputs -->
+          <div class="combiner-left-pane" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Format Switcher Navigation -->
+            <div class="combiner-mode-tabs" id="combinerModeTabs" style="display: flex; gap: 4px; background: rgba(0, 0, 0, 0.35); padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap;">
+              <button type="button" class="combiner-tab-btn active" data-tab="boolean">⚡ Boolean Combine</button>
+              <button type="button" class="combiner-tab-btn" data-tab="svg">🎨 SVG Path</button>
+              <button type="button" class="combiner-tab-btn" data-tab="canvas">🖌️ Canvas / JS</button>
+              <button type="button" class="combiner-tab-btn" data-tab="pillow">🐍 Python (Pillow)</button>
+              <button type="button" class="combiner-tab-btn" data-tab="cairo">📐 Cairo Context</button>
+            </div>
+
+            <!-- Tab 1: Boolean Combine of Two Shapes -->
+            <div class="combiner-tab-content" id="tabContentBoolean">
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Combine any two shapes from the library into a single frame:</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 11px;">Primary Shape (Base):</label>
+                  <select class="toolbar-select" id="selectCombinerShapeA" style="width: 100%; height: 30px; font-size: 11px; background: #1e293b; color: #fff; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 2px 8px;">
+                    <!-- Populated dynamically with all 41 shapes -->
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 11px;">Secondary Shape (Overlay):</label>
+                  <select class="toolbar-select" id="selectCombinerShapeB" style="width: 100%; height: 30px; font-size: 11px; background: #1e293b; color: #fff; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 2px 8px;">
+                    <!-- Populated dynamically with all 41 shapes -->
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                  <span>Overlay Scale (Size):</span>
+                  <span id="lblCombinerScaleB" style="color: #38bdf8; font-weight: 700;">60%</span>
+                </div>
+                <input type="range" id="rangeCombinerScaleB" min="15" max="100" value="60" style="width: 100%;" />
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                    <span>Offset X:</span>
+                    <span id="lblCombinerOffsetX" style="color: #38bdf8; font-weight: 700;">0%</span>
+                  </div>
+                  <input type="range" id="rangeCombinerOffsetX" min="-45" max="45" value="0" style="width: 100%;" />
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                    <span>Offset Y:</span>
+                    <span id="lblCombinerOffsetY" style="color: #38bdf8; font-weight: 700;">0%</span>
+                  </div>
+                  <input type="range" id="rangeCombinerOffsetY" min="-45" max="45" value="0" style="width: 100%;" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: SVG Path -->
+            <div class="combiner-tab-content" id="tabContentSvg" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+                <span style="font-size: 11px; color: var(--text-muted);">Paste SVG &lt;path d="..."&gt; or &lt;svg&gt;:</span>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;" id="svgPresetsWrap">
+                  <button type="button" class="btn-pill-xs" data-preset="starburst" style="font-size: 10px; padding: 1px 6px;">Starburst</button>
+                  <button type="button" class="btn-pill-xs" data-preset="shield" style="font-size: 10px; padding: 1px 6px;">Shield</button>
+                  <button type="button" class="btn-pill-xs" data-preset="badge" style="font-size: 10px; padding: 1px 6px;">Badge</button>
+                  <button type="button" class="btn-pill-xs" data-preset="clover" style="font-size: 10px; padding: 1px 6px;">Clover</button>
+                  <button type="button" class="btn-pill-xs" data-preset="crown" style="font-size: 10px; padding: 1px 6px;">Crown</button>
+                </div>
+              </div>
+              <textarea id="inputCombinerSvg" rows="5" class="combiner-code-area" placeholder="M 50,0 C 70,0 100,30 100,50 C 100,70 70,100 50,100 C 30,100 0,70 0,50 C 0,30 30,0 50,0 Z"></textarea>
+            </div>
+
+            <!-- Tab 3: Canvas / JavaScript -->
+            <div class="combiner-tab-content" id="tabContentCanvas" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+                <span style="font-size: 11px; color: var(--text-muted);">Canvas 2D Path Instructions (ctx, w, h):</span>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;" id="canvasPresetsWrap">
+                  <button type="button" class="btn-pill-xs" data-preset="double-ring" style="font-size: 10px; padding: 1px 6px;">Double Ring</button>
+                  <button type="button" class="btn-pill-xs" data-preset="star-flower" style="font-size: 10px; padding: 1px 6px;">Star Flower</button>
+                  <button type="button" class="btn-pill-xs" data-preset="scallop" style="font-size: 10px; padding: 1px 6px;">Scallop</button>
+                </div>
+              </div>
+              <textarea id="inputCombinerCanvas" rows="5" class="combiner-code-area" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Tab 4: Python (Pillow) -->
+            <div class="combiner-tab-content" id="tabContentPillow" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+                <span style="font-size: 11px; color: var(--text-muted);">Python Pillow (ImageDraw.polygon / ellipse):</span>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;" id="pillowPresetsWrap">
+                  <button type="button" class="btn-pill-xs" data-preset="pillow-star" style="font-size: 10px; padding: 1px 6px;">Pillow Star</button>
+                  <button type="button" class="btn-pill-xs" data-preset="pillow-octagon" style="font-size: 10px; padding: 1px 6px;">Octagon Badge</button>
+                  <button type="button" class="btn-pill-xs" data-preset="pillow-portal" style="font-size: 10px; padding: 1px 6px;">Portal Arch</button>
+                </div>
+              </div>
+              <textarea id="inputCombinerPillow" rows="5" class="combiner-code-area" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Tab 5: Cairo Context -->
+            <div class="combiner-tab-content" id="tabContentCairo" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
+                <span style="font-size: 11px; color: var(--text-muted);">Cairo Vector Path (cr.move_to, cr.curve_to, cr.arc):</span>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;" id="cairoPresetsWrap">
+                  <button type="button" class="btn-pill-xs" data-preset="cairo-infinity" style="font-size: 10px; padding: 1px 6px;">Infinity Loop</button>
+                  <button type="button" class="btn-pill-xs" data-preset="cairo-teardrop" style="font-size: 10px; padding: 1px 6px;">Drop Crest</button>
+                  <button type="button" class="btn-pill-xs" data-preset="cairo-capsule" style="font-size: 10px; padding: 1px 6px;">Capsule</button>
+                </div>
+              </div>
+              <textarea id="inputCombinerCairo" rows="5" class="combiner-code-area" spellcheck="false"></textarea>
+            </div>
+
+            <!-- Preset / Compatibility Badge Notice -->
+            <div style="font-size: 10px; color: #94a3b8; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 6px;">
+              <span>💡</span>
+              <span>All 5 engines generate normalized vector clipping masks compatible with canvas, real-time drag, resizing, and 300 DPI print export.</span>
+            </div>
+          </div>
+
+          <!-- Right Column: Live Interactive Preview Canvas -->
+          <div class="combiner-right-pane" style="display: flex; flex-direction: column; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px;">
+            <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; text-align: center;">Live Shape &amp; Photo Preview</div>
+            <div class="combiner-preview-canvas-box" style="width: 220px; height: 220px; position: relative; border-radius: 8px; overflow: hidden; background: #0b0f19; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+              <canvas id="combinerPreviewCanvas" width="220" height="220" style="display: block; width: 100%; height: 100%;"></canvas>
+            </div>
+            <div style="display: flex; gap: 6px; width: 100%;">
+              <button type="button" class="btn-pill-xs" id="btnPreviewTextureToggle" style="flex: 1; font-size: 10px; padding: 3px 6px; background: rgba(255,255,255,0.06); cursor: pointer;">Toggle Sample Photo</button>
+              <button type="button" class="btn-pill-xs" id="btnRefreshCombinerPreview" style="font-size: 10px; padding: 3px 8px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; cursor: pointer;">🔄 Update</button>
+            </div>
+            <div id="combinerStatusMessage" style="font-size: 10px; color: #38bdf8; text-align: center; min-height: 14px;">✓ Ready to draw</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding: 12px 20px;">
+        <button type="button" class="btn-pill" id="btnCancelShapeCombiner" style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; cursor: pointer;">Cancel</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button type="button" class="btn-pill" id="btnTestRenderCombiner" style="background: rgba(255, 255, 255, 0.08); color: #e2e8f0; font-size: 11px; cursor: pointer;">Update Preview</button>
+          <button type="button" class="btn-pill primary" id="btnApplyShapeCombiner" style="background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%); color: #ffffff; font-weight: 700; padding: 6px 18px; border-radius: 20px; border: 1px solid #38bdf8; cursor: pointer; box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);">
+            ✏️ Draw With This Combined Shape
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Smart Ease Logo Relink Progress & Communication Overlay ==================== -->
+  <div class="relink-progress-overlay" id="relinkProgressOverlay" style="display: none;">
+    <div class="relink-progress-card">
+      <div class="relink-logo-spinner-container">
+        <div class="relink-spinner-ring"></div>
+        <div class="relink-spinner-pulse"></div>
+        <div class="relink-logo-box">
+          <img src="logo/app_icon.ico" class="relink-logo-icon" alt="Smart Ease Logo" onerror="this.src='logo/Smart Ease Logo.jpg'">
+        </div>
+      </div>
+      <div class="relink-progress-title" id="relinkProgressTitle">Checking Connected Drives...</div>
+      <div class="relink-progress-subtitle" id="relinkProgressSubtitle">Scanning connected hard disks and folders for original project photos...</div>
+      <div class="relink-progress-bar-track" id="relinkProgressBarTrack">
+        <div class="relink-progress-bar-fill" id="relinkProgressBarFill"></div>
+      </div>
+      <div class="relink-progress-status" id="relinkProgressStatus">Searching...</div>
+      <div class="relink-progress-actions" id="relinkProgressActions" style="display: none;">
+        <button type="button" class="btn-pill" id="btnDismissRelinkProgress" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 12px; padding: 6px 18px; border-radius: 20px; cursor: pointer;">
+          I'll Choose Later
+        </button>
+        <button type="button" class="btn-pill primary" id="btnBrowseManualRelink" style="background: #0284c7; border: 1px solid #38bdf8; color: #fff; font-size: 12px; padding: 6px 18px; border-radius: 20px; cursor: pointer;">
+          Locate Folder Manually
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Canvas Right-Click Context Menu ==================== -->
+  <div id="canvasContextMenu" class="canvas-context-menu" style="display: none;">
+    <div class="context-menu-header" style="padding: 6px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #a855f7; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(168, 85, 247, 0.25); margin-bottom: 2px;">
+      <span id="ctxFrameHeaderTitle">Frame Settings</span>
+      <span style="font-size: 10px; opacity: 0.7; font-weight: 500;">Double Right-Click</span>
+    </div>
+    <div class="context-menu-item" id="ctxFrameSettings" style="font-weight: 600; color: #f3e8ff;">
+      <span class="ctx-icon">⚙️</span>
+      <span>Frame Settings &amp; Adjustments</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctxDuplicateRight">
+      <span class="ctx-icon">⧉</span>
+      <span id="ctxDuplicateRightLabel">Duplicate to Right</span>
+    </div>
+    <div class="context-menu-item" id="ctxDuplicateLeft">
+      <span class="ctx-icon">⧉</span>
+      <span id="ctxDuplicateLeftLabel">Duplicate to Left</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctxDeletePhoto">
+      <span class="ctx-icon">🗑️</span>
+      <span>Delete Photo (Keep Empty Frame)</span>
+    </div>
+    <div class="context-menu-item text-danger" id="ctxDeleteFrame">
+      <span class="ctx-icon">❌</span>
+      <span>Delete Frame from Canvas</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctxSwapPhoto">
+      <span class="ctx-icon">⇄</span>
+      <span>Interchange / Swap Photo</span>
+    </div>
+    <div class="context-menu-item" id="ctxSwitchLeftRight">
+      <span class="ctx-icon">⇆</span>
+      <span>Switch to Opposite Page (Left ↔ Right)</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctxFlipH">
+      <span class="ctx-icon">↔️</span>
+      <span>Flip Photo Horizontally (Mirror)</span>
+    </div>
+    <div class="context-menu-item" id="ctxFlipV">
+      <span class="ctx-icon">↕️</span>
+      <span>Flip Photo Vertically</span>
+    </div>
+    <div class="context-menu-item" id="ctxRotate">
+      <span class="ctx-icon">↻</span>
+      <span>Rotate Photo 90° Clockwise</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctxBringToFront">
+      <span class="ctx-icon">⤉</span>
+      <span>Bring to Front (Topmost Layer)</span>
+    </div>
+    <div class="context-menu-item" id="ctxSendToBack">
+      <span class="ctx-icon">⤈</span>
+      <span>Send to Back (Bottommost Layer)</span>
+    </div>
+  </div>
+
+  <!-- ==================== Spread Timeline Right-Click Context Menu ==================== -->
+  <div id="filmstripContextMenu" class="canvas-context-menu" style="display: none; min-width: 200px;">
+    <div class="context-menu-item" id="ctxInsertSpreadBefore">
+      <span class="ctx-icon">⏮️</span>
+      <span>Insert Spread Before</span>
+    </div>
+    <div class="context-menu-item" id="ctxInsertSpreadAfter">
+      <span class="ctx-icon">⏭️</span>
+      <span>Insert Spread Between / After</span>
+    </div>
+    <div class="context-menu-divider" style="height: 1px; background: var(--border-medium); margin: 4px 0;"></div>
+    <div class="context-menu-item text-danger" id="ctxDeleteSpread">
+      <span class="ctx-icon">🗑️</span>
+      <span>Delete Spread</span>
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="js/image-cache.js"></script>
+  <script src="js/layout-engine.js"></script>
+  <script src="js/album-state.js"></script>
+  <script src="js/canvas-renderer.js"></script>
+  <script src="js/pdf-export.js"></script>
+  <script src="js/sample-loader.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

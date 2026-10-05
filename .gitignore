@@ -1,0 +1,32 @@
+# Python and local runtime files
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+server_port.json
+
+# Firebase local state
+.firebase/
+
+# Generated application builds and installers
+/build/
+/dist/
+/installer/
+/SmartEasePhotobookStudio.exe
+/SmartEaseStudio.exe
+/SmartEase_Photobook_Studio_Setup.exe
+/Uninstall_SmartEase_Photobook_Studio.exe
+
+# Local screenshots, sample photos, and temporary working folders
+/temp*/
+/temps*/
+/pdf sample/
+/temp_cropped_spreads.json
+/dom-test.txt
+/logo/2026_08_05_23_14_59_IMG_9082.JPEG
+/public/logo/2026_08_05_23_14_59_IMG_9082.JPEG
+
+# Render local data
+/render-backend/data/
